@@ -1,0 +1,58 @@
+SocBoot:
+  App:
+    Name: soc-go-boot-app
+    Server:
+      Port: 9001
+      ContextPath: soc-go-boot-api
+  DataSource:
+    Master:
+      Type: mysql
+      Host: 192.168.1.181
+      Port: 3308
+      User: social
+      Password: pwd
+      Database: social_db
+      Options:
+        parseTime: true
+        loc: "Asia/Shanghai"
+  Redis:
+    Master:
+      Host: 192.168.1.181
+      Port: 6379
+      Password: 121
+      Database: 0
+      MaxIdle: 10
+      MaxActive: 30
+      ConnectTimeout: 0
+      ReadTimeout: 0
+      WriteTimeout: 0
+  Logger:
+    Default:
+      LogPath: ./logs/log.log
+      Level: info
+      IsSyncConsoleOut: true
+      FileSize: 1024
+      MaxBackups: 20
+      Tag: default
+    RR:
+      LogPath: ./logs/rr.log
+      Level: info
+      IsSyncConsoleOut: true
+      FileSize: 1024
+      MaxBackups: 20
+      Tag: rr
+  Kafka:
+    NameServers: 192.168.1.181:9092
+    ReconsumeTimes: 3
+  ElasticSearch:
+    ServerUrls: ["http://192.168.1.152:9200"]
+    Auth:
+      UserName: ""
+      Password: ""
+
+
+
+AppParams:
+  Test: test
+
+
