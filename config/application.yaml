@@ -7,19 +7,12 @@ SocBoot:
   DataSource:
     Master:
       Type: mysql
-      Host: 192.168.1.181
-      Port: 3308
-      User: social
-      Password: pwd
-      Database: social_db
-      Options:
-        parseTime: true
-        loc: "Asia/Shanghai"
+      DBUrl: root:mysqldev@127.0.0.1:3306/dbname?charset=utf8mb4&parseTime=True&loc=Local
   Redis:
     Master:
-      Host: 192.168.1.181
+      Host: 127.0.0.1
       Port: 6379
-      Password: 121
+      Password: ""
       Database: 0
       MaxIdle: 10
       MaxActive: 30
