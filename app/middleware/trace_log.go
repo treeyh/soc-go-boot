@@ -101,7 +101,7 @@ func StartTrace() gin.HandlerFunc {
 				httpContext.Method, httpContext.Url, strings.ReplaceAll(body, "\n", "\\n"), times.GetDateTimeStrByMillisecond(httpContext.EndTime),
 				runtimes, httpStatus, blw.body.String())
 
-			logger.GetRequestResponseLogger().InfoH(&httpContext, msg, zap.String("duration", runtimes),
+			logger.Logger().Info(msg, zap.String("duration", runtimes), zap.String("traceId", traceId),
 				zap.String("responseCode", httpStatus), zap.String("path", httpContext.Url))
 		}
 	}

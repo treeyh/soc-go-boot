@@ -3,40 +3,46 @@ package config
 import (
 	"fmt"
 	"github.com/spf13/viper"
+	socconfig "github.com/treeyh/soc-go-common/core/config"
+	"github.com/treeyh/soc-go-common/core/errors"
 )
 
-var conf SocConfig = SocConfig{
-	Viper:         viper.New(),
-	Mysql:         nil,
-	Redis:         nil,
-	ScheduleTime:  nil,
-	Logs:          nil,
-	Application:   nil,
-	ElasticSearch: nil,
+var conf = SocBootConfig{
+	Viper:   viper.New(),
+	SocBoot: nil,
+}
+
+type SocBootConfig struct {
+	Viper   *viper.Viper
+	SocBoot *SocConfig
 }
 
 type SocConfig struct {
-	Viper         *viper.Viper
-	Mysql         *MysqlConfig        //数据库配置
-	Redis         *RedisConfig        //redis配置
-	ScheduleTime  *ScheduleTimeConfig //定时时间配置
-	Logs          *map[string]LogConfig
-	Application   *ApplicationConfig   //应用配置
-	ElasticSearch *ElasticSearchConfig //es配置
+	App        *socconfig.AppConfig
+	DataSource *map[string]socconfig.DBConfig    //数据库配置
+	Redis      *map[string]socconfig.RedisConfig //redis配置
+	Logger     *map[string]socconfig.LogConfig
 }
 
-func loadExtraConfig(dir string, config string, env string, extraConfig interface{}) error {
-	err := loadConfig(dir, config, env)
+func GetSocConfig() *SocConfig {
+	return conf.SocBoot
+}
+
+func LoadEnvConfig(dir string, config string, env string) errors.AppError {
+	err := loadConfig(dir, config, "")
 	if err != nil {
 		return err
 	}
-	if err := conf.Viper.Unmarshal(&extraConfig); err != nil {
-		return err
+	if env != "" {
+		err = loadConfig(dir, config, env)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func loadConfig(dir string, config string, env string) error {
+func loadConfig(dir string, config string, env string) errors.AppError {
 	configName := config
 	if env != "" {
 		configName += "." + env
@@ -46,14 +52,14 @@ func loadConfig(dir string, config string, env string) error {
 	}
 	conf.Viper.SetConfigName(configName)
 	conf.Viper.AddConfigPath(dir)
-	conf.Viper.SetConfigType("yaml")
+	conf.Viper.SetConfigType("yml")
 	if err := conf.Viper.MergeInConfig(); err != nil {
 		fmt.Println(err)
-		return err
+		return errors.NewAppErrorByExistError(errors.LoadConfigFileFail, err)
 	}
 	if err := conf.Viper.Unmarshal(&conf); err != nil {
 		fmt.Println(err)
-		return err
+		return errors.NewAppErrorByExistError(errors.LoadConfigFileFail, err)
 	}
 	return nil
 }
