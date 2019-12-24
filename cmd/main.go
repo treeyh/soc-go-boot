@@ -1,18 +1,24 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/treeyh/soc-go-boot/app/common/buildinfo"
 	"github.com/treeyh/soc-go-boot/app/config"
 	"github.com/treeyh/soc-go-common/core/consts"
 	"github.com/treeyh/soc-go-common/core/logger"
 	"github.com/treeyh/soc-go-common/core/utils/json"
+	"net/http"
 	"os"
-	"path"
-	"runtime"
+	"os/signal"
+	"strconv"
+	"syscall"
+	"time"
 )
 
-const configRelativePath = "/../config"
+const configRelativePath = "./config"
 
 var (
 	env = ""
@@ -20,37 +26,70 @@ var (
 )
 
 func init() {
-	env = os.Getenv(consts.EvnRunName)
-	if "" == env {
-		env = consts.EnvLocal
-	}
+	// 获取环境变量
+	env = consts.GetCurrentEnv()
 
 	flag.StringVar(&env, "env", env, "env")
 	flag.Parse()
 
-	configPath := GetCurrentPath() + configRelativePath
-	config.LoadEnvConfig(configPath, "application", env)
+	//configPath := file.GetCurrentPath() + configRelativePath
+	config.LoadEnvConfig(configRelativePath, "application", env)
 
+	// 重新初始化日志配置
 	for k, v := range *config.GetSocConfig().Logger {
 		logger.InitLogger(k, &v, true)
 	}
 
+	log.Info("app env: " + env)
+	jstr, err := json.ToJson(config.GetSocConfig())
+	if err != nil {
+		panic(" init config json fail....")
+	}
+	log.Info("app config: " + jstr)
+
 }
 
-func GetCurrentPath() string {
-	_, filename, _, ok := runtime.Caller(0)
-	if ok {
-		abPath := path.Dir(filename)
-		return abPath
+// gracefulShutdown 优雅关机
+func gracefulShutdown(srv *http.Server) {
+	// Wait for interrupt signal to gracefully shutdown the server with
+	// a timeout of 5 seconds.
+	quit := make(chan os.Signal, 1)
+	// kill (no param) default send syscall.SIGTERM
+	// kill -2 is syscall.SIGINT
+	// kill -9 is syscall.SIGKILL but can't be catch, so don't need add it
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Info("Shutdown Server ...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("Server Shutdown: " + err.Error())
 	}
-	return ""
+
+	log.Info("Server exiting")
 }
 
 func main() {
 	//打印程序信息
-	log.Info(GetCurrentPath())
-	js, _ := json.ToJson(config.GetSocConfig())
-	log.Info(js)
+	log.Info(buildinfo.StringifySingleLine())
+	fmt.Println(buildinfo.StringifyMultiLine())
 
-	fmt.Println(log)
+	port := strconv.Itoa(config.GetSocConfig().App.Server.Port)
+
+	engine := gin.New()
+
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: engine,
+	}
+
+	go func() {
+		// service connections
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s", err)
+		}
+	}()
+
+	gracefulShutdown(srv)
 }
