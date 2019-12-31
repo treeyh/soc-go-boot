@@ -1,8 +1,7 @@
-package middleware
+package logger
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"github.com/treeyh/soc-go-boot/app/common/consts"
 	"github.com/treeyh/soc-go-common/core/logger"
@@ -76,11 +75,10 @@ func StartTrace() gin.HandlerFunc {
 			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(data))
 		}
 
-		ctx := context.WithValue(c.Request.Context(), consts.TraceIdKey, traceId)
-		ctx = context.WithValue(ctx, consts.HttpContextKey, httpContext)
-		c.Request = c.Request.WithContext(ctx)
-		c.Header(consts.TraceIdKey, traceId)
+		c.Set(consts.TraceIdKey, traceId)
+		c.Set(consts.TracerHttpContextKey, httpContext)
 
+		c.Header(consts.TraceIdKey, traceId)
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 		c.Writer = blw
 
@@ -90,7 +88,7 @@ func StartTrace() gin.HandlerFunc {
 		if urlCount <= 6 || httpContext.Url[urlCount-6:] != "health" {
 			// 仅记录非心跳日志
 
-			httpContext = c.Request.Context().Value(consts.HttpContextKey).(model.HttpContext)
+			httpContext = c.Request.Context().Value(consts.TracerHttpContextKey).(model.HttpContext)
 			httpContext.Status = c.Writer.Status()
 			httpContext.EndTime = times.GetNowMillisecond()
 			runtime := httpContext.EndTime - httpContext.StartTime

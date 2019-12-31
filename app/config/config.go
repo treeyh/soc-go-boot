@@ -18,10 +18,33 @@ type SocBootConfig struct {
 }
 
 type SocConfig struct {
-	App        *socconfig.AppConfig
+	App        *AppConfig
 	DataSource *map[string]socconfig.DBConfig    //数据库配置
 	Redis      *map[string]socconfig.RedisConfig //redis配置
 	Logger     *map[string]socconfig.LogConfig
+	Trace      *TraceConfig
+}
+
+// AppConfig 应用配置
+type AppConfig struct {
+	Name    string
+	Server  *ServerConfig
+	AppCode string
+	AppKey  string
+}
+
+// ServerConfig 服务配置
+type ServerConfig struct {
+	Port        int
+	ContextPath string
+}
+
+// Trace trace配置
+type TraceConfig struct {
+	// Enable 是否开启
+	Enable bool
+	// Server 服务地址
+	Server string
 }
 
 func GetSocConfig() *SocConfig {

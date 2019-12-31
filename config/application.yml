@@ -8,6 +8,9 @@ SocBoot:
     master:
       Type: mysql
       DBUrl: root:mysqldev@127.0.0.1:3306/dbname?charset=utf8mb4&parseTime=True&loc=Local
+  Trace:
+    Enable: true
+    Server: "127.0.0.1:6831"
   Redis:
     master:
       Host: 127.0.0.1
