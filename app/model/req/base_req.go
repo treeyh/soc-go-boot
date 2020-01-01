@@ -1,4 +1,4 @@
-package request
+package req
 
 type BaseReq struct {
 	Operator int64 `json:"operator" validate:"omitempty,gt=0"`
