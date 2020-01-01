@@ -3,9 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/treeyh/soc-go-boot/app/common/buildinfo"
 	"github.com/treeyh/soc-go-boot/app/config"
 	"github.com/treeyh/soc-go-common/core/consts"
 	"github.com/treeyh/soc-go-common/core/logger"
@@ -13,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 )
@@ -72,24 +68,25 @@ func gracefulShutdown(srv *http.Server) {
 
 func main() {
 	//打印程序信息
-	log.Info(buildinfo.StringifySingleLine())
-	fmt.Println(buildinfo.StringifyMultiLine())
+	//log.Info(buildinfo.StringifySingleLine())
+	//fmt.Println(buildinfo.StringifyMultiLine())
+	//
+	//port := strconv.Itoa(config.GetSocConfig().App.Server.Port)
+	//
+	//engine := gin.New()
+	//
+	//srv := &http.Server{
+	//	Addr:    ":" + port,
+	//	Handler: engine,
+	//}
+	//
+	//go func() {
+	//	// service connections
+	//	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	//		log.Fatalf("listen: %s", err)
+	//	}
+	//}()
+	//
+	//gracefulShutdown(srv)
 
-	port := strconv.Itoa(config.GetSocConfig().App.Server.Port)
-
-	engine := gin.New()
-
-	srv := &http.Server{
-		Addr:    ":" + port,
-		Handler: engine,
-	}
-
-	go func() {
-		// service connections
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %s", err)
-		}
-	}()
-
-	gracefulShutdown(srv)
 }
