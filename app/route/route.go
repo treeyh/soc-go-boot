@@ -1,34 +1,73 @@
 package route
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/treeyh/soc-go-boot/app/model/resp"
-	"github.com/treeyh/soc-go-boot/app/route/middleware/exception"
-	"github.com/treeyh/soc-go-boot/app/route/middleware/jaeger"
+	"github.com/treeyh/soc-go-boot/app/config"
+	"github.com/treeyh/soc-go-boot/app/controller/user_controller"
+	"github.com/treeyh/soc-go-boot/app/model"
+	"github.com/treeyh/soc-go-common/core/logger"
+	"reflect"
 )
 
 func SetupRouter(engine *gin.Engine) {
 
-	engine.Use(gin.Logger())
-	engine.Use(gin.Recovery())
+	//engine.Use(gin.Logger())
+	//engine.Use(gin.Recovery())
+	//
+	//engine.Use(exception.SetUp())
+	//engine.Use(jaeger.SetUp())
+	//
+	////404
+	//engine.NoRoute(func(c *gin.Context) {
+	//	utilGin := resp.GinContext{Ctx: c}
+	//	utilGin.Json(404, "请求方法不存在", nil)
+	//})
+	//
+	//engine.GET("/sing", func(c *gin.Context) {
+	//	utilGin := resp.GinContext{Ctx: c}
+	//	utilGin.Json(200, "ok", nil)
+	//})
 
-	engine.Use(exception.SetUp())
-	engine.Use(jaeger.SetUp())
-
-	//404
-	engine.NoRoute(func(c *gin.Context) {
-		utilGin := resp.GinContext{c}
-		utilGin.Json(404, "请求方法不存在", nil)
-	})
-
-	engine.GET("/sing", func(c *gin.Context) {
-		utilGin := resp.GinContext{c}
-		utilGin.Json(200, "ok", nil)
-	})
-
+	userRouter := engine.Group(config.GetSocConfig().App.Server.ContextPath + "/user")
+	{
+		userRouter.POST("", buildHandler("user_controller.Create", user_controller.Create))
+	}
 }
 
-func httpHandler(targetFunc interface{}) gin.HandlerFunc {
+// buildHandler 构造 处理handler
+func buildHandler(key string, targetFunc interface{}) gin.HandlerFunc {
+
+	// 验证 targetFunc 是否符合规范
+	targetType := reflect.TypeOf(targetFunc)
+	if reflect.Func != targetType.Kind() {
+		logger.Logger().Fatal(" buildHandler " + key + " not func ")
+	}
+	numIn := targetType.NumIn()
+	if numIn < 1 {
+		logger.Logger().Fatal(key + " not func ")
+	}
+
+	// 构建输入参数列表
+	paramTypes := make([]model.ParamsType, 0, numIn)
+	for i := 0; i < numIn; i++ {
+		elem := targetType.In(i)
+		fmt.Println("name:" + elem.Name())
+		isPtr := false
+		GetObjectTypeIgnorePointer(&isPtr, &elem)
+		fmt.Println(isPtr)
+		fmt.Println(elem.String())
+		fmt.Println(elem.Kind())
+
+		paramTypes = append(paramTypes, model.ParamsType{
+			IsPointer: isPtr,
+			Type:      elem,
+		})
+	}
+
+	if paramTypes[0].Type.String() != "gin.Context" {
+		logger.Logger().Fatal(" buildHandler " + key + " first params type need gin.Context ")
+	}
 
 	//handler := restHandler(targetFunc)
 	return func(c *gin.Context) {
@@ -37,7 +76,14 @@ func httpHandler(targetFunc interface{}) gin.HandlerFunc {
 	}
 }
 
-//func restHandler(targetFunc interface{}) gin.HandlerFunc {
+func GetObjectTypeIgnorePointer(isPtr *bool, elem *reflect.Type) {
+	if (*elem).Kind() == reflect.Ptr {
+		*elem = (*elem).Elem()
+		*isPtr = true
+	}
+}
+
+//func httpHandler(targetFunc interface{}) gin.HandlerFunc {
 //	return func(ctx *gin.Context) {
 //
 //		var respObj interface{} = nil
