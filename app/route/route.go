@@ -3,12 +3,16 @@ package route
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/treeyh/soc-go-boot/app/config"
 	"github.com/treeyh/soc-go-boot/app/controller"
-	"github.com/treeyh/soc-go-boot/app/controller/user_controller"
-	"github.com/treeyh/soc-go-boot/app/model"
-	"github.com/treeyh/soc-go-common/core/logger"
+	"github.com/treeyh/soc-go-common/core/consts"
+	"github.com/treeyh/soc-go-common/core/utils/file"
+	"go/parser"
+	"go/token"
+	"os"
+	"path/filepath"
+
 	"reflect"
+	"strings"
 )
 
 func SetupRouter(engine *gin.Engine) {
@@ -30,24 +34,80 @@ func SetupRouter(engine *gin.Engine) {
 	//	utilGin.Json(200, "ok", nil)
 	//})
 
-	userRouter := engine.Group(config.GetSocConfig().App.Server.ContextPath + "/user")
-	{
-		userRouter.POST("", buildHandler("user_controller.Create", &controller.UserController{}))
+	//userRouter := engine.Group(config.GetSocConfig().App.Server.ContextPath + "/user")
+	//{
+	//	userRouter.POST("", buildHandler("user_controller.Create", &controller.UserController{}))
+	//}
+
+	buildHandlerByController(engine, &controller.UserController{})
+}
+
+func buildHandlerByController(engine *gin.Engine, contrs ...controller.IController) {
+
+	if consts.GetCurrentEnv() == consts.EnvLocal {
+		// Local 环境重新构建 接口路由设置
+		fmt.Println(file.GetCurrentPath())
+		controllerPath := filepath.Join(file.GetCurrentPath(), "..", "controller")
+		fmt.Println(controllerPath)
+
+		fileSet := token.NewFileSet()
+		astPkgs, err := parser.ParseDir(fileSet, controllerPath, func(info os.FileInfo) bool {
+			name := info.Name()
+			return !info.IsDir() && !strings.HasPrefix(name, ".") && strings.HasSuffix(name, ".go")
+		}, parser.ParseComments)
+
+		if err != nil {
+			panic("build handler by controller fail. load " + controllerPath + " error: " + err.Error())
+		}
+
+		for k, v := range astPkgs {
+			fmt.Println(k)
+			fmt.Println(v.Name)
+
+			for kk, vv := range v.Files {
+				fmt.Println(kk)
+				fmt.Println(vv)
+			}
+		}
+
+		//for _, pkg := range astPkgs {
+		//	for _, fl := range pkg.Files {
+		//		for _, d := range fl.Decls {
+		//			switch specDecl := d.(type) {
+		//			case *ast.FuncDecl:
+		//				if specDecl.Recv != nil {
+		//					exp, ok := specDecl.Recv.List[0].Type.(*ast.StarExpr) // Check that the type is correct first beforing throwing to parser
+		//					if ok {
+		//						parserComments(specDecl, fmt.Sprint(exp.X), pkgpath)
+		//					}
+		//				}
+		//			}
+		//		}
+		//	}
+		//}
+		//genRouterCode(pkgRealpath)
+		//savetoFile(pkgRealpath)
+
+		for _, v := range contrs {
+			reflectVal := reflect.ValueOf(v)
+			contr := reflect.Indirect(reflectVal).Type()
+			fmt.Println("Kind:" + contr.Kind().String())
+			fmt.Println("PkgPath:" + contr.PkgPath())
+			fmt.Println("String:" + contr.String())
+			fmt.Println("Name:" + contr.Name())
+
+			if contr.Kind() != reflect.Struct || !strings.HasSuffix(contr.Name(), "Controller") {
+				panic("build handler by controller fail. " + contr.String() + " not struct or Name not has suffix Controller.")
+			}
+
+		}
+
 	}
+
 }
 
 // buildHandler 构造 处理handler
 func buildHandler(key string, targetFunc interface{}) gin.HandlerFunc {
-
-	// 验证 targetFunc 是否符合规范
-	targetType := reflect.TypeOf(targetFunc)
-	if reflect.Func != targetType.Kind() {
-		logger.Logger().Fatal(" buildHandler " + key + " not func ")
-	}
-	numIn := targetType.NumIn()
-	if numIn < 1 {
-		logger.Logger().Fatal(key + " not func ")
-	}
 
 	reflectVal := reflect.ValueOf(targetFunc)
 	t := reflect.Indirect(reflectVal).Type()
@@ -55,25 +115,35 @@ func buildHandler(key string, targetFunc interface{}) gin.HandlerFunc {
 	fmt.Println("String:" + t.String())
 	fmt.Println("Name:" + t.Name())
 
-	// 构建输入参数列表
-	paramTypes := make([]model.ParamsType, 0, numIn)
-	for i := 0; i < numIn; i++ {
-		elem := targetType.In(i)
-		fmt.Println("name:" + elem.Name())
-		isPtr := false
-		fmt.Println(isPtr)
-		fmt.Println(elem.String())
-		fmt.Println(elem.Kind())
+	//// 验证 targetFunc 是否符合规范
+	//targetType := reflect.TypeOf(targetFunc)
+	//if reflect.Func != targetType.Kind() {
+	//	logger.Logger().Fatal(" buildHandler " + key + " not func ")
+	//}
+	//numIn := targetType.NumIn()
+	//if numIn < 1 {
+	//	logger.Logger().Fatal(key + " not func ")
+	//}
 
-		paramTypes = append(paramTypes, model.ParamsType{
-			IsPointer: isPtr,
-			Type:      elem,
-		})
-	}
-
-	if paramTypes[0].Type.String() != "gin.Context" {
-		logger.Logger().Fatal(" buildHandler " + key + " first params type need gin.Context ")
-	}
+	//// 构建输入参数列表
+	//paramTypes := make([]model.ParamsType, 0, numIn)
+	//for i := 0; i < numIn; i++ {
+	//	elem := targetType.In(i)
+	//	fmt.Println("name:" + elem.Name())
+	//	isPtr := false
+	//	fmt.Println(isPtr)
+	//	fmt.Println(elem.String())
+	//	fmt.Println(elem.Kind())
+	//
+	//	paramTypes = append(paramTypes, model.ParamsType{
+	//		IsPointer: isPtr,
+	//		Type:      elem,
+	//	})
+	//}
+	//
+	//if paramTypes[0].Type.String() != "gin.Context" {
+	//	logger.Logger().Fatal(" buildHandler " + key + " first params type need gin.Context ")
+	//}
 
 	//handler := restHandler(targetFunc)
 	return func(c *gin.Context) {
