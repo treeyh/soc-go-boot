@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/treeyh/soc-go-boot/app/config"
+	"github.com/treeyh/soc-go-boot/app/controller"
 	"github.com/treeyh/soc-go-boot/app/controller/user_controller"
 	"github.com/treeyh/soc-go-boot/app/model"
 	"github.com/treeyh/soc-go-common/core/logger"
@@ -31,7 +32,7 @@ func SetupRouter(engine *gin.Engine) {
 
 	userRouter := engine.Group(config.GetSocConfig().App.Server.ContextPath + "/user")
 	{
-		userRouter.POST("", buildHandler("user_controller.Create", user_controller.Create))
+		userRouter.POST("", buildHandler("user_controller.Create", &controller.UserController{}))
 	}
 }
 
@@ -48,13 +49,18 @@ func buildHandler(key string, targetFunc interface{}) gin.HandlerFunc {
 		logger.Logger().Fatal(key + " not func ")
 	}
 
+	reflectVal := reflect.ValueOf(targetFunc)
+	t := reflect.Indirect(reflectVal).Type()
+	fmt.Println("PkgPath:" + t.PkgPath())
+	fmt.Println("String:" + t.String())
+	fmt.Println("Name:" + t.Name())
+
 	// 构建输入参数列表
 	paramTypes := make([]model.ParamsType, 0, numIn)
 	for i := 0; i < numIn; i++ {
 		elem := targetType.In(i)
 		fmt.Println("name:" + elem.Name())
 		isPtr := false
-		GetObjectTypeIgnorePointer(&isPtr, &elem)
 		fmt.Println(isPtr)
 		fmt.Println(elem.String())
 		fmt.Println(elem.Kind())
