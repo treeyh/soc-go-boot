@@ -10,15 +10,20 @@ import (
 type UserController struct {
 }
 
-func (uc *UserController) Version() string {
-	return "v1"
+// 无参数
+// PreUrl Url前缀
+func (uc *UserController) PreUrl() string {
+	return "/user"
 }
 
+// @router /get/:userId [get,post]
 func (uc *UserController) Get(ctx *gin.Context, userId int64) *resp.RespResult {
 	return nil
 }
 
-func (uc *UserController) Create(ctx *gin.Context, createTime time.Time, userReq *req.UserReq) *resp.RespResult {
+// @params updateTime
+// @router /create [*]
+func (uc *UserController) Create(ctx *gin.Context, updateTime, createTime time.Time, userReq *req.UserReq) *resp.RespResult {
 	return &resp.RespResult{
 		Code:    0,
 		Message: "OK",
@@ -26,7 +31,8 @@ func (uc *UserController) Create(ctx *gin.Context, createTime time.Time, userReq
 	}
 }
 
-func Create(ctx *gin.Context, createTime time.Time, userReq *req.UserReq) *resp.RespResult {
+// @router /add [post]
+func Create(ctx *gin.Context, updateTime, createTime time.Time, userReq *req.UserReq) *resp.RespResult {
 	return &resp.RespResult{
 		Code:    0,
 		Message: "OK",

@@ -1,5 +1,6 @@
 package controller
 
 type IController interface {
-	Version() string
+	// PreUrl url前缀
+	PreUrl() string
 }
