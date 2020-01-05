@@ -9,8 +9,8 @@ func init() {
 
 	userController := &controller.UserController{}
 
-	handlerFuncMap = make(map[string]model.HandlerFuncInOut)
-	handlerFuncMap["UserController.Create"] = model.HandlerFuncInOut{
+	handlerFuncMapTmp := make(map[string]model.HandlerFuncInOut)
+	handlerFuncMapTmp["UserController.Create"] = model.HandlerFuncInOut{
 		ControllerName: "UserController",
 		Name:           "Create",
 		RouteMethods:   nil,
@@ -35,12 +35,15 @@ func init() {
 		Outs: &[]model.ParamsType{},
 		Func: userController.Create,
 	}
+	handlerFuncMap = handlerFuncMapTmp
 
-	routeUrlMethodMap = make(map[string]map[string]map[string][]string)
+	routeUrlMethodMapTmp := make(map[string]map[string]map[string][]string)
 
-	routeUrlMethodMap["/user"] = make(map[string]map[string][]string)
-	routeUrlMethodMap["/user"]["/create"] = make(map[string][]string)
-	routeUrlMethodMap["/user"]["/create"]["get"] = make([]string, 1)
-	routeUrlMethodMap["/user"]["/create"]["get"][0] = "UserController.Create"
+	routeUrlMethodMapTmp["/user"] = make(map[string]map[string][]string)
+	routeUrlMethodMapTmp["/user"]["/create"] = make(map[string][]string)
+	routeUrlMethodMapTmp["/user"]["/create"]["GET"] = make([]string, 1)
+	routeUrlMethodMapTmp["/user"]["/create"]["GET"][0] = "UserController.Create"
+
+	routeUrlMethodMap = routeUrlMethodMapTmp
 
 }

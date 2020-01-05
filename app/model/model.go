@@ -13,8 +13,8 @@ const (
 
 // InParamsType 输入参数类型定义
 type InParamsType struct {
-	Name       string                `json:"name"`
-	AssignType *HttpParamsAssignType `json:"assignType"`
+	Name       string               `json:"name"`
+	AssignType HttpParamsAssignType `json:"assignType"`
 	ParamsType
 }
 
@@ -22,6 +22,7 @@ type InParamsType struct {
 type ParamsType struct {
 	IsPointer bool         `json:"isPointer"`
 	Type      reflect.Type `json:"type"`
+	Kind      reflect.Kind `json:"kind"`
 }
 
 type RouteMethod struct {
@@ -37,7 +38,7 @@ type HandlerFuncInOut struct {
 	RouteMethods   *[]RouteMethod  `json:"routeMethods"`
 	Ins            *[]InParamsType `json:"ins"`
 	Outs           *[]ParamsType   `json:"outs"`
-	Func           interface{}     `json:"func"`
+	Func           interface{}     `json:"-"`
 }
 
 // HandlerFuncRoute 路由策略

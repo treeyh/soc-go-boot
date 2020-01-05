@@ -19,3 +19,7 @@ func (g *GinContext) Json(code int, msg string, data interface{}) {
 		Data:    data,
 	})
 }
+
+func (g *GinContext) JsonRespResult(resp *RespResult) {
+	g.Ctx.JSON(200, resp)
+}

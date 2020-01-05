@@ -7,7 +7,9 @@ import (
 	"github.com/treeyh/soc-go-boot/app/config"
 	"github.com/treeyh/soc-go-boot/app/controller"
 	"github.com/treeyh/soc-go-boot/app/model"
+	"github.com/treeyh/soc-go-boot/app/model/resp"
 	"github.com/treeyh/soc-go-common/core/consts"
+	"github.com/treeyh/soc-go-common/core/errors"
 	"github.com/treeyh/soc-go-common/core/logger"
 	"github.com/treeyh/soc-go-common/core/utils/file"
 	"github.com/treeyh/soc-go-common/core/utils/json"
@@ -41,21 +43,21 @@ func init(){
 }`
 )
 
-func DemoPrint() {
-	path := file.GetCurrentPath()
-
-	fmt.Println(filepath.Join(path, "abc.go"))
-	f, err := os.Create(filepath.Join(path, "abc.go"))
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	content := strings.ReplaceAll(goTemplate, "{{.globalinfo}}", "cccccc")
-	f.WriteString(content)
-
-	fmt.Println(demoString)
-}
+//func DemoPrint() {
+//	path := file.GetCurrentPath()
+//
+//	fmt.Println(filepath.Join(path, "abc.go"))
+//	f, err := os.Create(filepath.Join(path, "abc.go"))
+//	if err != nil {
+//		panic(err)
+//	}
+//	defer f.Close()
+//
+//	content := strings.ReplaceAll(goTemplate, "{{.globalinfo}}", "cccccc")
+//	f.WriteString(content)
+//
+//	fmt.Println(demoString)
+//}
 
 func SetupRouter(engine *gin.Engine) {
 
@@ -90,7 +92,9 @@ func registerRoute(engine *gin.Engine, contrs ...controller.IController) {
 			for method, funcInOutKeys := range methodMap {
 				if "*" == method {
 					groupRouteMapTmp[preUrl].Any(suffixUrl, buildHandler(method, suffixUrl, *getHandlerFuncInOutsByKey(&funcInOutKeys))...)
+					continue
 				}
+				groupRouteMapTmp[preUrl].Handle(method, suffixUrl, buildHandler(method, suffixUrl, *getHandlerFuncInOutsByKey(&funcInOutKeys))...)
 			}
 		}
 	}
@@ -159,8 +163,6 @@ func buildHandlerFuncMap(contrs ...controller.IController) (*map[string]map[stri
 						//if len(contrs) > 0 {
 						//
 						//}
-
-						//isRoute := false
 						preUrl := ""
 						if preUrl, ok = controllerNames[controllerName]; !ok {
 							// 不需要初始化
@@ -173,7 +175,6 @@ func buildHandlerFuncMap(contrs ...controller.IController) (*map[string]map[stri
 							buildRouteMap2[preUrl] = make(map[string][]model.HandlerFuncInOut)
 						}
 						buildRouteMap[preUrl][controllerName+"."+handlerFunc.Name] = handlerFunc
-						//parserComments(specDecl, fmt.Sprint(exp.X), pkgpath)
 						for _, v := range *handlerFunc.RouteMethods {
 							if _, ok := buildRouteMap2[preUrl][v.Route]; !ok {
 								buildRouteMap2[preUrl][v.Route] = make([]model.HandlerFuncInOut, 0)
@@ -214,14 +215,12 @@ func parseHandlerFunc(controllerName, preUrl string, specDecl *ast.FuncDecl) *mo
 			routeMethod.Methods = []string{"GET"}
 		} else {
 			routeMethod.Methods = strings.Split(methods, ",")
-
 			for _, httpMethod := range routeMethod.Methods {
 				if !strings.Contains(httpMethods, ","+httpMethod+",") {
 					panic(" @route http method format does not to the rules. " + httpMethod)
 				}
 			}
 		}
-
 		routeMethods = append(routeMethods, routeMethod)
 	}
 
@@ -235,13 +234,21 @@ func parseHandlerFunc(controllerName, preUrl string, specDecl *ast.FuncDecl) *mo
 	handlerFunc.ControllerName = controllerName
 	handlerFunc.RouteMethods = &routeMethods
 	ins := make([]model.InParamsType, 0)
-
 	for _, param := range specDecl.Type.Params.List {
 		for _, pn := range param.Names {
+			fmt.Println("param:" + pn.Name)
 			ins = append(ins, model.InParamsType{Name: pn.Name})
 		}
 	}
 	handlerFunc.Ins = &ins
+	outs := make([]model.ParamsType, 0)
+	for _, param := range specDecl.Type.Results.List {
+		for _, pn := range param.Names {
+			fmt.Println("return:" + pn.Name)
+		}
+		outs = append(outs, model.ParamsType{})
+	}
+	handlerFunc.Outs = &outs
 	return &handlerFunc
 }
 
@@ -262,48 +269,57 @@ func buildRouteControllerMap(contrs ...controller.IController) *map[string]strin
 // buildHandler 构造 处理handler
 func buildHandler(method, suffixUrl string, handlerFuncs []model.HandlerFuncInOut) []gin.HandlerFunc {
 
-	handlerMap := make([]gin.HandlerFunc, 0, len(handlerFuncs))
+	handlers := make([]gin.HandlerFunc, 0, len(handlerFuncs))
 
 	for _, handlerFunc := range handlerFuncs {
-		reflectVal := reflect.ValueOf(handlerFunc.Func)
-		t := reflect.Indirect(reflectVal).Type()
-		fmt.Println("PkgPath:" + t.PkgPath())
-		fmt.Println("String:" + t.String())
-		fmt.Println("Name:" + t.Name())
-
-		// 验证 targetFunc 是否符合规范
+		// 验证 handlerFunc 是否符合规范
 		targetType := reflect.TypeOf(handlerFunc.Func)
+		methodName := handlerFunc.ControllerName + "." + handlerFunc.Name
 		if reflect.Func != targetType.Kind() {
-			logger.Logger().Fatal(" buildHandler " + handlerFunc.ControllerName + "." + handlerFunc.Name + " not func ")
+			panic(" buildHandler " + methodName + " not func. ")
 		}
-		numIn := targetType.NumIn()
-		if numIn < 1 {
-			logger.Logger().Fatal(handlerFunc.ControllerName + "." + handlerFunc.Name + " not func ")
+		if targetType.NumIn() < 1 {
+			panic(methodName + " The first parameter needs to be *gin.Context, the return value is only one and must be *resp.RespResult. ")
 		}
-
+		if targetType.NumOut() != 1 {
+			panic(methodName + " The first parameter needs to be *gin.Context, the return value is only one and must be *resp.RespResult. ")
+		}
+		urlPaths := strings.Split(suffixUrl, "/")
 		// 构建输入参数列表
-		paramTypes := make([]model.InParamsType, 0, numIn)
-		for i := 0; i < numIn; i++ {
+		for i, inParam := range *handlerFunc.Ins {
 			elem := targetType.In(i)
-			fmt.Println("name:" + elem.Name())
 			isPtr := elem.Kind() == reflect.Ptr
-			fmt.Println(isPtr)
-			fmt.Println(elem.String())
-			fmt.Println(elem.Kind())
 			if isPtr {
-				fmt.Println(elem.Elem().String())
-				fmt.Println(elem.Elem().Kind())
+				inParam.Kind = elem.Elem().Kind()
+				inParam.Type = elem.Elem()
+			} else {
+				inParam.Kind = elem.Kind()
+				inParam.Type = elem
 			}
-			fmt.Println("======")
-
-			paramTypes = append(paramTypes, model.InParamsType{
-				Name: "",
-				ParamsType: model.ParamsType{
-					Type:      elem,
-					IsPointer: isPtr,
-				},
-			})
+			inParam.IsPointer = isPtr
+			if checkParamExistUrl(&urlPaths, inParam.Name) {
+				inParam.AssignType = model.UrlAssign
+			}
 		}
+
+		// 构建输出参数
+		for i, outParam := range *handlerFunc.Outs {
+			elem := targetType.Out(i)
+			isPtr := elem.Kind() == reflect.Ptr
+			fmt.Println("aaaaa:" + elem.Kind().String())
+			if isPtr {
+				outParam.Kind = elem.Elem().Kind()
+				outParam.Type = elem.Elem()
+			} else {
+				outParam.Kind = elem.Kind()
+				outParam.Type = elem.Elem()
+			}
+
+			fmt.Println(outParam.Kind.String())
+			fmt.Println(outParam.Type.String())
+		}
+		fmt.Println(json.ToJson(handlerFunc))
+		handlers = append(handlers, httpHandler(&handlerFunc))
 	}
 
 	//
@@ -312,17 +328,19 @@ func buildHandler(method, suffixUrl string, handlerFuncs []model.HandlerFuncInOu
 	//}
 
 	//handler := restHandler(targetFunc)
-	return func(c *gin.Context) {
-		//token := c.GetHeader(consts.APP_HEADER_TOKEN_NAME)
-		//handler(c)
-	}
+	return handlers
 }
 
-func GetObjectTypeIgnorePointer(isPtr *bool, elem *reflect.Type) {
-	if (*elem).Kind() == reflect.Ptr {
-		*elem = (*elem).Elem()
-		*isPtr = true
+// checkParamExistUrl 判断参数是否在url中获取
+func checkParamExistUrl(urlPaths *[]string, param string) bool {
+	param1 := "*" + param
+	param2 := ":" + param
+	for _, v := range *urlPaths {
+		if v == param1 || v == param2 {
+			return true
+		}
 	}
+	return false
 }
 
 // readGoModModule 读取go.mod的模块
@@ -359,41 +377,34 @@ func readGoModModule(goModPath string) string {
 	return ""
 }
 
-//func httpHandler(targetFunc interface{}) gin.HandlerFunc {
-//	return func(ctx *gin.Context) {
-//
-//		var respObj interface{} = nil
-//
-//		reqInfo, err := NewRequestInfo(ctx)
-//		if err != nil {
-//			log.Error(err)
-//			respObj = vo.VoidErr{Err: vo.NewErr(errs.BuildSystemErrorInfoWithMessage(errs.ServerError, err.Error()))}
-//		}
-//		startTime := time.Now()
-//		respData, err := InjectFunc(targetFunc, *reqInfo)
-//		elapsed := time.Since(startTime)
-//
-//		if err != nil {
-//			log.Error(err)
-//			respObj = vo.VoidErr{Err: vo.NewErr(errs.BuildSystemErrorInfoWithMessage(errs.ServerError, err.Error()))}
-//		} else {
-//			if len(respData) > 0 {
-//				respObj = respData[0].Interface()
-//			}
-//		}
-//		if respObj != nil {
-//			var respBody = ""
-//			if s, ok := respObj.(string); ok{
-//				respBody = s
-//			}else{
-//				respBody = json.ToJsonIgnoreError(respObj)
-//			}
-//
-//			respContent(ctx, 200, respBody)
-//			log.Infof("请求处理完成，总耗时-> [%dms], url-> [%s], respBody-> [%s]", elapsed/1e6, ctx.Request.URL, respBody)
-//		}
-//	}
-//}
+func httpHandler(handlerFunc *model.HandlerFuncInOut) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+
+		ginContext := resp.GinContext{Ctx: ctx}
+		respData, err := injectFunc(&ginContext, handlerFunc)
+
+		var respObj resp.RespResult
+		if err != nil {
+			logger.Logger().Error(err)
+			respObj = resp.RespResult{
+				Code:    err.Code(),
+				Message: err.Message(),
+			}
+		} else {
+			if len(*respData) > 0 {
+				respObj = (*respData)[0].Interface().(resp.RespResult)
+			}
+		}
+		ginContext.JsonRespResult(&respObj)
+	}
+}
+
+func injectFunc(ctx *resp.GinContext, handlerFunc *model.HandlerFuncInOut) (*[]reflect.Value, errors.AppError) {
+
+	//inputValues := make([]reflect.Value, numIn)
+
+	return nil, nil
+}
 
 //func InjectFunc(targetFunc interface{}, reqInfo RequestInfo) ([]reflect.Value, error) {
 //	targetType := reflect.TypeOf(targetFunc)
@@ -435,12 +446,6 @@ func readGoModModule(goModPath string) string {
 //	return reflect.ValueOf(targetFunc).Call(inputValues), nil
 //}
 //
-//func judgeIsPtr(isPtr *bool, elem *reflect.Type) {
-//	if (*elem).Kind() == reflect.Ptr {
-//		*elem = (*elem).Elem()
-//		*isPtr = true
-//	}
-//}
 //
 //func assemblyInputValues(inputValues *[]reflect.Value, elem reflect.Type, isPtr bool, reqInfo RequestInfo, i int) bool {
 //	if elem.String() == "context.Context" {
