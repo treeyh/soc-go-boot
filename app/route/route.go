@@ -22,11 +22,40 @@ import (
 	"strings"
 )
 
+const httpMethods = ",GET,POST,DELETE,PATCH,PUT,OPTIONS,HEAD,*,"
+
 var (
-	routeMap = make(map[string]map[string]model.HandlerFuncInOut)
+	handlerFuncMap    map[string]model.HandlerFuncInOut
+	routeUrlMethodMap map[string]map[string]map[string][]string
+	groupRouteMap     map[string]*gin.RouterGroup
 
 	routeRegex = regexp.MustCompile(`@router\s+(\S+)(?:\s+\[(\S+)\])?`)
+
+	demoString = "aaabbb"
+
+	goTemplate = `package route
+
+
+func init(){
+	demoString = "{{.globalinfo}}"
+}`
 )
+
+func DemoPrint() {
+	path := file.GetCurrentPath()
+
+	fmt.Println(filepath.Join(path, "abc.go"))
+	f, err := os.Create(filepath.Join(path, "abc.go"))
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	content := strings.ReplaceAll(goTemplate, "{{.globalinfo}}", "cccccc")
+	f.WriteString(content)
+
+	fmt.Println(demoString)
+}
 
 func SetupRouter(engine *gin.Engine) {
 
@@ -47,13 +76,32 @@ func SetupRouter(engine *gin.Engine) {
 	//	utilGin.Json(200, "ok", nil)
 	//})
 
-	userController := &controller.UserController{}
-	userRouter := engine.Group(config.GetSocConfig().App.Server.ContextPath + "/user")
-	{
-		userRouter.POST("", buildHandler(engine, "UserController.Create", userController.Create))
-	}
+	registerRoute(engine, &controller.UserController{})
+}
 
-	//buildHandler(engine, &controller.UserController{})
+func registerRoute(engine *gin.Engine, contrs ...controller.IController) {
+	//buildRouteMap(contrs...)
+
+	groupRouteMapTmp := make(map[string]*gin.RouterGroup)
+
+	for preUrl, suffixUrlMethodMap := range routeUrlMethodMap {
+		groupRouteMapTmp[preUrl] = engine.Group(config.GetSocConfig().App.Server.ContextPath + preUrl)
+		for suffixUrl, methodMap := range suffixUrlMethodMap {
+			for method, funcInOutKeys := range methodMap {
+				if "*" == method {
+					groupRouteMapTmp[preUrl].Any(suffixUrl, buildHandler(method, suffixUrl, *getHandlerFuncInOutsByKey(&funcInOutKeys))...)
+				}
+			}
+		}
+	}
+}
+
+func getHandlerFuncInOutsByKey(keys *[]string) *[]model.HandlerFuncInOut {
+	funcs := make([]model.HandlerFuncInOut, 0, len(*keys))
+	for _, v := range *keys {
+		funcs = append(funcs, handlerFuncMap[v])
+	}
+	return &funcs
 }
 
 // buildRouteMap 本地环境根据Controller注释构建RouteMap
@@ -118,7 +166,7 @@ func buildHandlerFuncMap(contrs ...controller.IController) (*map[string]map[stri
 							// 不需要初始化
 							continue
 						}
-						handlerFunc := *(parseHandlerFunc(preUrl, specDecl))
+						handlerFunc := *(parseHandlerFunc(controllerName, preUrl, specDecl))
 
 						if _, ok := buildRouteMap[preUrl]; !ok {
 							buildRouteMap[preUrl] = make(map[string]model.HandlerFuncInOut)
@@ -143,7 +191,7 @@ func buildHandlerFuncMap(contrs ...controller.IController) (*map[string]map[stri
 }
 
 // parseHandlerFunc 构建HandlerFunc
-func parseHandlerFunc(preUrl string, specDecl *ast.FuncDecl) *model.HandlerFuncInOut {
+func parseHandlerFunc(controllerName, preUrl string, specDecl *ast.FuncDecl) *model.HandlerFuncInOut {
 
 	handlerRoute := model.HandlerFuncRoute{}
 	handlerRoute.PreUrl = preUrl
@@ -156,16 +204,22 @@ func parseHandlerFunc(preUrl string, specDecl *ast.FuncDecl) *model.HandlerFuncI
 		matches := routeRegex.FindStringSubmatch(t)
 		routeMethod := model.RouteMethod{}
 		if len(matches) != 3 {
-			panic(" @route does not conform to the rules. " + v.Text)
+			panic(" @route format does not to the rules. " + v.Text)
 		}
 
 		routeMethod.Route = matches[1]
 		routeMethod.PreUrl = preUrl
-		methods := strings.ToLower(matches[2])
+		methods := strings.ToUpper(matches[2])
 		if matches[2] == "" {
-			routeMethod.Methods = []string{"get"}
+			routeMethod.Methods = []string{"GET"}
 		} else {
 			routeMethod.Methods = strings.Split(methods, ",")
+
+			for _, httpMethod := range routeMethod.Methods {
+				if !strings.Contains(httpMethods, ","+httpMethod+",") {
+					panic(" @route http method format does not to the rules. " + httpMethod)
+				}
+			}
 		}
 
 		routeMethods = append(routeMethods, routeMethod)
@@ -178,6 +232,7 @@ func parseHandlerFunc(preUrl string, specDecl *ast.FuncDecl) *model.HandlerFuncI
 
 	handlerFunc := model.HandlerFuncInOut{}
 	handlerFunc.Name = specDecl.Name.Name
+	handlerFunc.ControllerName = controllerName
 	handlerFunc.RouteMethods = &routeMethods
 	ins := make([]model.InParamsType, 0)
 
@@ -205,49 +260,52 @@ func buildRouteControllerMap(contrs ...controller.IController) *map[string]strin
 }
 
 // buildHandler 构造 处理handler
-func buildHandler(engine *gin.Engine, key string, targetFunc interface{}) gin.HandlerFunc {
+func buildHandler(method, suffixUrl string, handlerFuncs []model.HandlerFuncInOut) []gin.HandlerFunc {
 
-	//buildRouteMap(contrs...)
+	handlerMap := make([]gin.HandlerFunc, 0, len(handlerFuncs))
 
-	reflectVal := reflect.ValueOf(targetFunc)
-	t := reflect.Indirect(reflectVal).Type()
-	fmt.Println("PkgPath:" + t.PkgPath())
-	fmt.Println("String:" + t.String())
-	fmt.Println("Name:" + t.Name())
+	for _, handlerFunc := range handlerFuncs {
+		reflectVal := reflect.ValueOf(handlerFunc.Func)
+		t := reflect.Indirect(reflectVal).Type()
+		fmt.Println("PkgPath:" + t.PkgPath())
+		fmt.Println("String:" + t.String())
+		fmt.Println("Name:" + t.Name())
 
-	// 验证 targetFunc 是否符合规范
-	targetType := reflect.TypeOf(targetFunc)
-	if reflect.Func != targetType.Kind() {
-		logger.Logger().Fatal(" buildHandler " + key + " not func ")
-	}
-	numIn := targetType.NumIn()
-	if numIn < 1 {
-		logger.Logger().Fatal(key + " not func ")
-	}
-
-	// 构建输入参数列表
-	paramTypes := make([]model.InParamsType, 0, numIn)
-	for i := 0; i < numIn; i++ {
-		elem := targetType.In(i)
-		fmt.Println("name:" + elem.Name())
-		isPtr := elem.Kind() == reflect.Ptr
-		fmt.Println(isPtr)
-		fmt.Println(elem.String())
-		fmt.Println(elem.Kind())
-		if isPtr {
-			fmt.Println(elem.Elem().String())
-			fmt.Println(elem.Elem().Kind())
+		// 验证 targetFunc 是否符合规范
+		targetType := reflect.TypeOf(handlerFunc.Func)
+		if reflect.Func != targetType.Kind() {
+			logger.Logger().Fatal(" buildHandler " + handlerFunc.ControllerName + "." + handlerFunc.Name + " not func ")
 		}
-		fmt.Println("======")
+		numIn := targetType.NumIn()
+		if numIn < 1 {
+			logger.Logger().Fatal(handlerFunc.ControllerName + "." + handlerFunc.Name + " not func ")
+		}
 
-		paramTypes = append(paramTypes, model.InParamsType{
-			Name: "",
-			ParamsType: model.ParamsType{
-				Type:      elem,
-				IsPointer: isPtr,
-			},
-		})
+		// 构建输入参数列表
+		paramTypes := make([]model.InParamsType, 0, numIn)
+		for i := 0; i < numIn; i++ {
+			elem := targetType.In(i)
+			fmt.Println("name:" + elem.Name())
+			isPtr := elem.Kind() == reflect.Ptr
+			fmt.Println(isPtr)
+			fmt.Println(elem.String())
+			fmt.Println(elem.Kind())
+			if isPtr {
+				fmt.Println(elem.Elem().String())
+				fmt.Println(elem.Elem().Kind())
+			}
+			fmt.Println("======")
+
+			paramTypes = append(paramTypes, model.InParamsType{
+				Name: "",
+				ParamsType: model.ParamsType{
+					Type:      elem,
+					IsPointer: isPtr,
+				},
+			})
+		}
 	}
+
 	//
 	//if paramTypes[0].Type.String() != "gin.Context" {
 	//	logger.Logger().Fatal(" buildHandler " + key + " first params type need gin.Context ")

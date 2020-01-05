@@ -2,9 +2,19 @@ package model
 
 import "reflect"
 
+type HttpParamsAssignType int
+
+const (
+	UrlAssign   HttpParamsAssignType = 1
+	QueryAssign HttpParamsAssignType = iota
+	BodyAssign
+	HeaderAssign
+)
+
 // InParamsType 输入参数类型定义
 type InParamsType struct {
-	Name string `json:"name"`
+	Name       string                `json:"name"`
+	AssignType *HttpParamsAssignType `json:"assignType"`
 	ParamsType
 }
 
@@ -22,10 +32,12 @@ type RouteMethod struct {
 
 // HandlerFuncInOut handler方法输入输出参数定义
 type HandlerFuncInOut struct {
-	Name         string          `json:"name"`
-	RouteMethods *[]RouteMethod  `json:"routeMethods"`
-	Ins          *[]InParamsType `json:"ins"`
-	Outs         *[]ParamsType   `json:"outs"`
+	ControllerName string          `json:"controllerName"`
+	Name           string          `json:"name"`
+	RouteMethods   *[]RouteMethod  `json:"routeMethods"`
+	Ins            *[]InParamsType `json:"ins"`
+	Outs           *[]ParamsType   `json:"outs"`
+	Func           interface{}     `json:"func"`
 }
 
 // HandlerFuncRoute 路由策略

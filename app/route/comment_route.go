@@ -1,40 +1,46 @@
 package route
 
 import (
+	"github.com/treeyh/soc-go-boot/app/controller"
 	"github.com/treeyh/soc-go-boot/app/model"
-	"reflect"
-	"time"
 )
 
 func init() {
-	routeMap["/user"] = map[string]model.HandlerFuncInOut{}
 
-	handlerFunc1 := model.HandlerFuncInOut{
-		Name: "Create",
-		RouteMethods: &[]model.RouteMethod{
-			{
-				Route: "/create",
-				Methods: []string{
-					"get",
-				},
-			},
-		},
+	userController := &controller.UserController{}
+
+	handlerFuncMap = make(map[string]model.HandlerFuncInOut)
+	handlerFuncMap["UserController.Create"] = model.HandlerFuncInOut{
+		ControllerName: "UserController",
+		Name:           "Create",
+		RouteMethods:   nil,
 		Ins: &[]model.InParamsType{
 			{
-				Name: "createTime",
-				ParamsType: model.ParamsType{
-					IsPointer: true,
-					Type:      reflect.TypeOf(time.Now()),
-				},
+				Name:       "ctx",
+				ParamsType: model.ParamsType{},
 			},
-		},
-		Outs: &[]model.ParamsType{
 			{
-				IsPointer: true,
-				Type:      reflect.TypeOf(time.Now()),
+				Name:       "updateTime",
+				ParamsType: model.ParamsType{},
+			},
+			{
+				Name:       "createTime",
+				ParamsType: model.ParamsType{},
+			},
+			{
+				Name:       "userReq",
+				ParamsType: model.ParamsType{},
 			},
 		},
+		Outs: &[]model.ParamsType{},
+		Func: userController.Create,
 	}
-	routeMap["/user"]["method"] = handlerFunc1
+
+	routeUrlMethodMap = make(map[string]map[string]map[string][]string)
+
+	routeUrlMethodMap["/user"] = make(map[string]map[string][]string)
+	routeUrlMethodMap["/user"]["/create"] = make(map[string][]string)
+	routeUrlMethodMap["/user"]["/create"]["get"] = make([]string, 1)
+	routeUrlMethodMap["/user"]["/create"]["get"][0] = "UserController.Create"
 
 }

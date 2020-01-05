@@ -33,6 +33,7 @@
 *.tar
 *.zip
 *.war
+*.tmp
 
 # Logs and databases #
 ######################
