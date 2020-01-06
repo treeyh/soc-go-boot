@@ -5,8 +5,9 @@ import "reflect"
 type HttpParamsAssignType int
 
 const (
-	UrlAssign   HttpParamsAssignType = 1
-	QueryAssign HttpParamsAssignType = iota
+	UnAssign  HttpParamsAssignType = 0
+	UrlAssign HttpParamsAssignType = iota
+	QueryAssign
 	BodyAssign
 	HeaderAssign
 )
@@ -37,7 +38,9 @@ type HandlerFuncInOut struct {
 	Name           string          `json:"name"`
 	RouteMethods   *[]RouteMethod  `json:"routeMethods"`
 	Ins            *[]InParamsType `json:"ins"`
+	InCount        int             `json:"inCount"`
 	Outs           *[]ParamsType   `json:"outs"`
+	OutCount       int             `json:"outCount"`
 	Func           interface{}     `json:"-"`
 }
 

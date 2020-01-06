@@ -28,12 +28,24 @@ func init() {
 				ParamsType: model.ParamsType{},
 			},
 			{
+				Name:       "userId",
+				ParamsType: model.ParamsType{},
+			},
+			{
+				Name:       "userName",
+				ParamsType: model.ParamsType{},
+			},
+			{
 				Name:       "userReq",
 				ParamsType: model.ParamsType{},
 			},
 		},
-		Outs: &[]model.ParamsType{},
-		Func: userController.Create,
+		InCount: 6,
+		Outs: &[]model.ParamsType{
+			{},
+		},
+		OutCount: 1,
+		Func:     userController.Create,
 	}
 	handlerFuncMap = handlerFuncMapTmp
 
@@ -41,8 +53,8 @@ func init() {
 
 	routeUrlMethodMapTmp["/user"] = make(map[string]map[string][]string)
 	routeUrlMethodMapTmp["/user"]["/create"] = make(map[string][]string)
-	routeUrlMethodMapTmp["/user"]["/create"]["GET"] = make([]string, 1)
-	routeUrlMethodMapTmp["/user"]["/create"]["GET"][0] = "UserController.Create"
+	routeUrlMethodMapTmp["/user"]["/create"]["*"] = make([]string, 1)
+	routeUrlMethodMapTmp["/user"]["/create"]["*"][0] = "UserController.Create"
 
 	routeUrlMethodMap = routeUrlMethodMapTmp
 

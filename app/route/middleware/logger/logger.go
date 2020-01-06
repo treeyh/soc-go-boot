@@ -84,7 +84,7 @@ func StartTrace() gin.HandlerFunc {
 
 		c.Next()
 
-		urlCount := strs.Len(httpContext.Url)
+		urlCount := strs.LengthUnicode(httpContext.Url)
 		if urlCount <= 6 || httpContext.Url[urlCount-6:] != "health" {
 			// 仅记录非心跳日志
 
