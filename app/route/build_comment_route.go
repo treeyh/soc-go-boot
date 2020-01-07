@@ -6,6 +6,7 @@ import (
 	"github.com/treeyh/soc-go-boot/app/controller"
 	"github.com/treeyh/soc-go-boot/app/model"
 	"github.com/treeyh/soc-go-common/core/consts"
+	"github.com/treeyh/soc-go-common/core/logger"
 	"github.com/treeyh/soc-go-common/core/utils/file"
 	"github.com/treeyh/soc-go-common/core/utils/json"
 	"go/ast"
@@ -15,7 +16,9 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
+	"unicode"
 )
 
 // buildRouteMap 本地环境根据Controller注释构建RouteMap
@@ -107,31 +110,55 @@ func parseHandlerFunc(controllerName, preUrl string, specDecl *ast.FuncDecl) *mo
 	handlerRoute := model.HandlerFuncRoute{}
 	handlerRoute.PreUrl = preUrl
 	routeMethods := make([]model.RouteMethod, 0)
+	paramMaps := make(map[string]model.InParamsType, 0)
 	for _, v := range specDecl.Doc.List {
 		t := strings.TrimSpace(strings.TrimLeft(v.Text, "//"))
-		if !strings.HasPrefix(t, "@router") {
+		if !strings.HasPrefix(t, "@router") && !strings.HasPrefix(t, "@Param") {
 			continue
 		}
-		matches := routeRegex.FindStringSubmatch(t)
-		routeMethod := model.RouteMethod{}
-		if len(matches) != 3 {
-			panic(" @route format does not to the rules. " + v.Text)
-		}
+		if strings.HasPrefix(t, "@router") {
+			matches := routeRegex.FindStringSubmatch(t)
+			routeMethod := model.RouteMethod{}
+			if len(matches) != 3 {
+				panic(" @route format does not to the rules. " + v.Text)
+			}
 
-		routeMethod.Route = matches[1]
-		routeMethod.PreUrl = preUrl
-		methods := strings.ToUpper(matches[2])
-		if matches[2] == "" {
-			routeMethod.Methods = []string{"GET"}
-		} else {
-			routeMethod.Methods = strings.Split(methods, ",")
-			for _, httpMethod := range routeMethod.Methods {
-				if !strings.Contains(httpMethods, ","+httpMethod+",") {
-					panic(" @route http method format does not to the rules. " + httpMethod)
+			routeMethod.Route = matches[1]
+			routeMethod.PreUrl = preUrl
+			methods := strings.ToUpper(matches[2])
+			if matches[2] == "" {
+				routeMethod.Methods = []string{"GET"}
+			} else {
+				routeMethod.Methods = strings.Split(methods, ",")
+				for _, httpMethod := range routeMethod.Methods {
+					if !strings.Contains(httpMethods, ","+httpMethod+",") {
+						panic(" @route http method format does not to the rules. " + httpMethod)
+					}
 				}
 			}
+			routeMethods = append(routeMethods, routeMethod)
 		}
-		routeMethods = append(routeMethods, routeMethod)
+		if strings.HasPrefix(t, "@Param") {
+			pv := getParams(strings.TrimSpace(strings.TrimLeft(t, "@Param")))
+			if len(pv) < 4 {
+				logger.Logger().Error("Invalid @Param format. Needs at least 4 parameters")
+			}
+			fmt.Println(json.ToJson(pv))
+			param := model.InParamsType{}
+			param.Name = pv[0]
+			param.AssignType = getParamAssignType(pv[1])
+			param.DefaultVal = pv[2]
+
+			switch len(pv) {
+			case 4:
+				param.IsNeed, _ = strconv.ParseBool(pv[2])
+				param.DefaultVal = ""
+			case 5:
+				param.IsNeed, _ = strconv.ParseBool(pv[2])
+				param.DefaultVal = pv[3]
+			}
+			paramMaps[param.Name] = param
+		}
 	}
 
 	if len(routeMethods) == 0 {
@@ -146,6 +173,13 @@ func parseHandlerFunc(controllerName, preUrl string, specDecl *ast.FuncDecl) *mo
 	ins := make([]model.InParamsType, 0)
 	for _, param := range specDecl.Type.Params.List {
 		for _, pn := range param.Names {
+			if v, ok := paramMaps[pn.Name]; ok {
+				if v.AssignType == model.HeaderAssign {
+					v.Name = strings.ReplaceAll(v.Name, "_", "-")
+				}
+				ins = append(ins, v)
+				continue
+			}
 			ins = append(ins, model.InParamsType{Name: pn.Name})
 		}
 	}
@@ -163,6 +197,56 @@ func parseHandlerFunc(controllerName, preUrl string, specDecl *ast.FuncDecl) *mo
 	}
 	handlerFunc.Outs = &outs
 	return &handlerFunc
+}
+
+// getParamAssignType 获取参数注解
+func getParamAssignType(val string) model.HttpParamsAssignType {
+	switch strings.ToLower(val) {
+	case "formdata":
+		return model.PostFormAssign
+	case "query":
+		return model.QueryAssign
+	case "path":
+		return model.PathAssign
+	case "body":
+		return model.BodyAssign
+	case "header":
+		return model.HeaderAssign
+	}
+	return model.UnAssign
+}
+
+// getParams 解析@Params备注
+func getParams(str string) []string {
+	var s []rune
+	var j int
+	var start bool
+	var r []string
+	var quoted int8
+	for _, c := range str {
+		if unicode.IsSpace(c) && quoted == 0 {
+			if !start {
+				continue
+			} else {
+				start = false
+				j++
+				r = append(r, string(s))
+				s = make([]rune, 0)
+				continue
+			}
+		}
+
+		start = true
+		if c == '"' {
+			quoted ^= 1
+			continue
+		}
+		s = append(s, c)
+	}
+	if len(s) > 0 {
+		r = append(r, string(s))
+	}
+	return r
 }
 
 // buildRouteControllerMap 获取需要路由的Constroller map

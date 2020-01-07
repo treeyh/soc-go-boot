@@ -1,10 +1,15 @@
 package route
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/treeyh/soc-go-boot/app/common/consts"
 	"github.com/treeyh/soc-go-boot/app/model"
 	"github.com/treeyh/soc-go-boot/app/model/req"
 	"github.com/treeyh/soc-go-common/core/errors"
+	"github.com/treeyh/soc-go-common/core/logger"
+	"github.com/treeyh/soc-go-common/core/utils/json"
 	"reflect"
 	"strconv"
 )
@@ -105,102 +110,93 @@ func init() {
 	//}
 }
 
-func injectFunc(ctx *req.GinContext, handlerFunc *model.HandlerFuncInOut) (*[]reflect.Value, errors.AppError) {
-	//inputValues := make([]reflect.Value , 0, handlerFunc.InCount)
-	//if handlerFunc.InCount > 0 {
-	//	for i, inParam := range *handlerFunc.Ins {
-	//		if i == 0 {
-	//			inputValues[i] = reflect.ValueOf(ctx)
-	//			continue
-	//		}
-	//
-	//		if v, ok := ParamConverter[inParam.Kind]; ok {
-	//			value, err := v()
-	//			if err != nil {
-	//				logger.Logger().Error(fmt.Sprintf("%#v", err))
-	//				return nil, err
-	//			}
-	//			inputValues[i] = *value
-	//		}
-	//	}
-	//
-	//}
-	//
-	//return &reflect.ValueOf(handlerFunc.Func).Call(inputValues), nil
+func injectFunc(ctx *req.GinContext, handlerFunc model.HandlerFuncInOut) ([]reflect.Value, errors.AppError) {
+	fmt.Println(json.ToJson(handlerFunc))
+	inputValues := make([]reflect.Value, handlerFunc.InCount)
+	if handlerFunc.InCount > 0 {
+		for i, inParam := range *handlerFunc.Ins {
+			if i == 0 {
+				inputValues[i] = reflect.ValueOf(ctx)
+				continue
+			}
+			fmt.Println("i===" + strconv.Itoa(i))
+			fmt.Println(inParam.Kind.String())
+			fmt.Println(inParam.Type.String())
+			fmt.Println(inputValues[0].Kind().String())
+			fmt.Println(inputValues[0].String())
+			if inParam.AssignType == model.UnAssign {
+				continue
+			}
 
-	return nil, nil
+			if inParam.AssignType == model.BodyAssign {
+				val, err := parseBody(ctx.Ctx, &inParam)
+				if err != nil {
+					logger.Logger().Error(err)
+					return nil, err
+				}
+				fmt.Println(json.ToJson(val))
+				inputValues[i] = *val
+				continue
+			}
+
+			val := getParamString(ctx.Ctx, &inParam)
+			fmt.Println("val:" + val)
+			if v, ok := ParamConverter[inParam.Kind]; ok {
+				value, err := v(val)
+				if err != nil {
+					logger.Logger().Error(err)
+					return nil, errors.NewAppErrorByExistError(consts.PARSE_PARAM_ERROR, err, inParam.Name)
+				}
+				va := reflect.ValueOf(value)
+				if !inParam.IsPointer {
+					va = va.Addr()
+				}
+				inputValues[i] = va
+				continue
+			}
+
+			// TODO time trans
+			//if
+		}
+
+	}
+
+	fmt.Println(json.ToJson(inputValues))
+	return reflect.ValueOf(handlerFunc.Func).Call(inputValues), nil
 }
 
 // getParamString 根据获取类型，获取参数string
-func getParamString(key, defaultVal string, assignType *model.HttpParamsAssignType, ctx *gin.Context) string {
+func getParamString(ctx *gin.Context, inParam *model.InParamsType) string {
 
-	//switch *assignType {
-	//case model.PathAssign:
-	//	return ctx.Param(key)
-	//case model.QueryAssign:
-	//	return ctx.DefaultQuery(key, defaultVal)
-	//case model.HeaderAssign:
-	//	return ctx.GetHeader(key)
-	//case model.PostFormAssign:
-	//	return ctx.DefaultPostForm(key, defaultVal)
-	//case model.BodyAssign:
-	//	return ctx.ShouldBindJSON()
-	//}
+	switch inParam.AssignType {
+	case model.PathAssign:
+		return ctx.Param(inParam.Name)
+	case model.QueryAssign:
+		return ctx.DefaultQuery(inParam.Name, inParam.DefaultVal)
+	case model.HeaderAssign:
+		return ctx.GetHeader(inParam.Name)
+	case model.PostFormAssign:
+		return ctx.DefaultPostForm(inParam.Name, inParam.DefaultVal)
+	}
 
 	return ""
 
 }
 
-//func ParseValue(elem reflect.Type, isPtr bool, reqInfo RequestInfo) (*reflect.Value, error) {
-//	reqObj := reflect.New(elem).Elem()
-//	for i := 0; i < elem.NumField(); i++ {
-//		field := elem.Field(i)
-//		fieldType := field.Type
-//		isPtr := false
-//		if fieldType.Kind() == reflect.Ptr {
-//			fieldType = fieldType.Elem()
-//			isPtr = true
-//		}
-//		var target *reflect.Value = nil
-//		var err error = nil
-//
-//		if converter, ok := BasicTypeConverter[fieldType.String()]; ok {
-//			target, err = ParseQuery(field.Name, isPtr, converter, reqInfo)
-//		} else if isBodyFlag(fieldType.Kind()) {
-//			target, err = ParseBody(fieldType, isPtr, reqInfo)
-//		}
-//		if err != nil {
-//			log.Error(fmt.Sprintf("%#v", err))
-//			return nil, err
-//		}
-//
-//		if target != nil {
-//			reqObj.FieldByName(field.Name).Set(*target)
-//		}
-//	}
-//	if isPtr {
-//		reqObj = reqObj.Addr()
-//	}
-//	return &reqObj, nil
-//}
-//
-//func ParseBody(elem reflect.Type, isPtr bool, reqInfo RequestInfo) (*reflect.Value, error) {
-//	body := reqInfo.Body
-//	if body == "" && isPtr {
-//		return nil, nil
-//	}
-//	newStrut := reflect.New(elem)
-//	targetInterface := newStrut.Interface()
-//	err := json.FromJson(body, &targetInterface)
-//	if err != nil {
-//		log.Error(err)
-//		return nil, err
-//	}
-//	if !isPtr {
-//		newStrut = newStrut.Elem()
-//	}
-//	return &newStrut, nil
-//}
+func parseBody(ctx *gin.Context, inParam *model.InParamsType) (*reflect.Value, errors.AppError) {
+	newStrut := reflect.New(inParam.Type)
+	targetInterface := newStrut.Interface()
+	err := ctx.ShouldBindBodyWith(&targetInterface, binding.JSON)
+	if err != nil {
+		logger.Logger().Error(err)
+		return nil, errors.NewAppErrorByExistError(consts.PARSE_PARAM_ERROR, err, inParam.Name)
+	}
+	if !inParam.IsPointer {
+		newStrut = newStrut.Addr()
+	}
+	return &newStrut, nil
+}
+
 //
 //func ParseQuery(fieldName string, isPtr bool, converter func(v string) (interface{}, error), reqInfo RequestInfo) (*reflect.Value, error) {
 //	paramValue := reqInfo.Parameters[str.LcFirst(fieldName)]

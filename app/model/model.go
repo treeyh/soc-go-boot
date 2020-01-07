@@ -22,9 +22,11 @@ type InParamsType struct {
 
 // OutParamsType 输出参数类型定义
 type ParamsType struct {
-	IsPointer bool         `json:"isPointer"`
-	Type      reflect.Type `json:"type"`
-	Kind      reflect.Kind `json:"kind"`
+	IsPointer  bool         `json:"isPointer"`
+	DefaultVal string       `json:"defaultVal"`
+	IsNeed     bool         `json:"isNeed"`
+	Type       reflect.Type `json:"type"`
+	Kind       reflect.Kind `json:"kind"`
 }
 
 type RouteMethod struct {

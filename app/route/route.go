@@ -1,6 +1,7 @@
 package route
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/treeyh/soc-go-boot/app/config"
 	"github.com/treeyh/soc-go-boot/app/controller"
@@ -8,6 +9,7 @@ import (
 	"github.com/treeyh/soc-go-boot/app/model/req"
 	"github.com/treeyh/soc-go-boot/app/model/resp"
 	"github.com/treeyh/soc-go-common/core/logger"
+	"github.com/treeyh/soc-go-common/core/utils/json"
 	"reflect"
 	"regexp"
 	"strings"
@@ -76,27 +78,26 @@ func registerRoute(engine *gin.Engine, contrs ...controller.IController) {
 	//buildRouteMap(contrs...)
 
 	groupRouteMapTmp := make(map[string]*gin.RouterGroup)
-
 	for preUrl, suffixUrlMethodMap := range routeUrlMethodMap {
 		groupRouteMapTmp[preUrl] = engine.Group(config.GetSocConfig().App.Server.ContextPath + preUrl)
 		for suffixUrl, methodMap := range suffixUrlMethodMap {
 			for method, funcInOutKeys := range methodMap {
 				if "*" == method {
-					groupRouteMapTmp[preUrl].Any(suffixUrl, buildHandler(method, suffixUrl, *getHandlerFuncInOutsByKey(&funcInOutKeys))...)
+					groupRouteMapTmp[preUrl].Any(suffixUrl, buildHandler(method, suffixUrl, getHandlerFuncInOutsByKey(&funcInOutKeys))...)
 					continue
 				}
-				groupRouteMapTmp[preUrl].Handle(method, suffixUrl, buildHandler(method, suffixUrl, *getHandlerFuncInOutsByKey(&funcInOutKeys))...)
+				groupRouteMapTmp[preUrl].Handle(method, suffixUrl, buildHandler(method, suffixUrl, getHandlerFuncInOutsByKey(&funcInOutKeys))...)
 			}
 		}
 	}
 }
 
-func getHandlerFuncInOutsByKey(keys *[]string) *[]model.HandlerFuncInOut {
+func getHandlerFuncInOutsByKey(keys *[]string) []model.HandlerFuncInOut {
 	funcs := make([]model.HandlerFuncInOut, 0, len(*keys))
 	for _, v := range *keys {
 		funcs = append(funcs, handlerFuncMap[v])
 	}
-	return &funcs
+	return funcs
 }
 
 // buildHandler 构造 处理handler
@@ -140,15 +141,24 @@ func buildHandler(method, suffixUrl string, handlerFuncs []model.HandlerFuncInOu
 					panic(methodName + " The first parameter needs to be *gin.Context. ")
 				}
 				inParam.AssignType = model.UnAssign
-			} else if checkParamExistUrl(&urlPaths, inParam.Name) {
-				inParam.AssignType = model.PathAssign
-			} else if method == "GET" || i < maxIndex {
-				inParam.AssignType = model.QueryAssign
-			} else if inParam.Kind.String() == "struct" && inParam.Type.String() != "time.Time" {
-				inParam.AssignType = model.BodyAssign
-			} else {
-				inParam.AssignType = model.QueryAssign
+				continue
 			}
+
+			if inParam.AssignType == model.UnAssign {
+				// 若没有指定获取方式，通过程序判定
+				if checkParamExistUrl(&urlPaths, inParam.Name) {
+					inParam.AssignType = model.PathAssign
+				} else if method == "GET" || i < maxIndex {
+					inParam.AssignType = model.QueryAssign
+				} else if inParam.Kind.String() == "struct" && inParam.Type.String() != "time.Time" && inParam.Type.String() != "types.Time" {
+					inParam.AssignType = model.BodyAssign
+				} else {
+					inParam.AssignType = model.QueryAssign
+				}
+			}
+			fmt.Println(inParam.AssignType)
+			fmt.Println("====" + inParam.Kind.String())
+			fmt.Println("====" + inParam.Type.String())
 		}
 		handlerFunc.InCount = maxIndex + 1
 
@@ -164,12 +174,17 @@ func buildHandler(method, suffixUrl string, handlerFuncs []model.HandlerFuncInOu
 				outParam.Kind = elem.Kind()
 				outParam.Type = elem.Elem()
 			}
+			fmt.Println("====" + outParam.Kind.String())
 			if i == 0 && (!isPtr || outParam.Kind.String() != "struct" || outParam.Type.String() != "resp.HttpRespResult") {
 				panic(methodName + " The return value is only one and must be *resp.HttpRespResult. ")
 			}
 		}
-		handlerFunc.InCount = len(*handlerFunc.Outs)
-		handlers = append(handlers, httpHandler(&handlerFunc))
+		handlerFunc.OutCount = len(*handlerFunc.Outs)
+
+		fmt.Println("===111")
+		fmt.Println(json.ToJsonIgnoreError(handlerFunc))
+
+		handlers = append(handlers, httpHandler(handlerFunc))
 	}
 	return handlers
 }
@@ -186,7 +201,7 @@ func checkParamExistUrl(urlPaths *[]string, param string) bool {
 	return false
 }
 
-func httpHandler(handlerFunc *model.HandlerFuncInOut) gin.HandlerFunc {
+func httpHandler(handlerFunc model.HandlerFuncInOut) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
 		ginContext := req.GinContext{Ctx: ctx}
@@ -200,8 +215,8 @@ func httpHandler(handlerFunc *model.HandlerFuncInOut) gin.HandlerFunc {
 				Message: err.Message(),
 			}
 		} else {
-			if len(*respData) > 0 {
-				respObj = (*respData)[0].Interface().(resp.RespResult)
+			if len(respData) > 0 {
+				respObj = (respData)[0].Interface().(resp.RespResult)
 			}
 		}
 		resp.JsonRespResult(&ginContext, &respObj)

@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/treeyh/soc-go-boot/app/model/req"
 	"github.com/treeyh/soc-go-boot/app/model/resp"
+	"github.com/treeyh/soc-go-boot/app/model/validate"
 	"github.com/treeyh/soc-go-common/core/utils/json"
 	"time"
 )
@@ -24,13 +25,17 @@ func (uc *UserController) Get(ctx *req.GinContext, userId int64) *resp.RespResul
 	return nil
 }
 
-// Param@   参数名（对应方法中参数名）      取值来源（formData、query、path、body、header(参数名"-"用"_"符号代替)）   是否必须(true,false)    "注释"
-// @Param	updateTime		form	 string	true		"The email for login"
+// Param@   参数名（对应方法中参数名）      取值来源（formData、query、path、body、header(参数名"-"用"_"符号代替)）   是否必须(true,false)  "默认值（可以没有）"   "注释"
+// @Param	updateTime		query	 true	"2012-12-12 12:12:11"	"The email for login"
+// @Param	createTime		query	 true	"2012-12-12 12:12:11"	"The email for login"
+// @Param	userId		query	 true	1	"The email for login"
+// @Param	userName		query	 33222	"2012-12-12 12:12:11"	"The email for login"
 // @router /create [*]
 func (uc *UserController) Create(ctx *req.GinContext, updateTime, createTime time.Time, userId int64, userName string, userReq *req.UserReq) *resp.HttpRespResult {
 	fmt.Println(updateTime)
 	fmt.Println(ctx.Ctx.Param("updateTime"))
 	fmt.Println(ctx.Ctx.GetPostForm("updateTime"))
+	fmt.Println(json.ToJson(userReq))
 
 	return resp.OkHttpRespResult(&resp.RespResult{
 		Code:    0,
@@ -56,6 +61,11 @@ func Create() gin.HandlerFunc {
 		}
 
 		fmt.Println(json.ToJson(user))
+
+		msg := validate.ValidateObject(user)
+		if msg != nil {
+			fmt.Println(*msg)
+		}
 
 		context.JSON(200, resp.RespResult{
 			Code:    0,
