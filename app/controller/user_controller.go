@@ -22,7 +22,8 @@ func (uc *UserController) Get(ctx *req.GinContext, userId int64) *resp.RespResul
 	return nil
 }
 
-// @params updateTime
+// Param@   参数名（对应方法中参数名）      取值来源（formData、query、path、body、header(参数名"-"用"_"符号代替)）   是否必须(true,false)    "注释"
+// @Param	updateTime		form	 string	true		"The email for login"
 // @router /create [*]
 func (uc *UserController) Create(ctx *req.GinContext, updateTime, createTime time.Time, userId int64, userName string, userReq *req.UserReq) *resp.HttpRespResult {
 	fmt.Println(updateTime)
