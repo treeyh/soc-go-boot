@@ -67,9 +67,9 @@ func SetupRouter(engine *gin.Engine) {
 	//	utilGin.Json(200, "ok", nil)
 	//})
 
-	//registerRoute(engine, &controller.UserController{})
+	registerRoute(engine, &controller.UserController{})
 
-	engine.Any("/soc-go-boot-api/user/:create", controller.Create())
+	//engine.Any("/soc-go-boot-api/user/:create", controller.Create())
 }
 
 func registerRoute(engine *gin.Engine, contrs ...controller.IController) {
@@ -131,6 +131,7 @@ func buildHandler(method, suffixUrl string, handlerFuncs []model.HandlerFuncInOu
 				inParam.Kind = elem.Kind()
 				inParam.Type = elem
 			}
+			//fmt.Println(inParam.Name)
 			//fmt.Println(inParam.Kind.String())
 			//fmt.Println(inParam.Type.String())
 			//fmt.Println("====")
@@ -140,7 +141,7 @@ func buildHandler(method, suffixUrl string, handlerFuncs []model.HandlerFuncInOu
 				}
 				inParam.AssignType = model.UnAssign
 			} else if checkParamExistUrl(&urlPaths, inParam.Name) {
-				inParam.AssignType = model.UrlAssign
+				inParam.AssignType = model.PathAssign
 			} else if method == "GET" || i < maxIndex {
 				inParam.AssignType = model.QueryAssign
 			} else if inParam.Kind.String() == "struct" && inParam.Type.String() != "time.Time" {

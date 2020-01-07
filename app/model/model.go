@@ -5,9 +5,10 @@ import "reflect"
 type HttpParamsAssignType int
 
 const (
-	UnAssign  HttpParamsAssignType = 0
-	UrlAssign HttpParamsAssignType = iota
+	UnAssign   HttpParamsAssignType = 0
+	PathAssign HttpParamsAssignType = iota
 	QueryAssign
+	PostFormAssign
 	BodyAssign
 	HeaderAssign
 )
