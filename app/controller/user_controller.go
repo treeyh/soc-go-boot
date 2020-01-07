@@ -3,8 +3,10 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/treeyh/soc-go-boot/app/model/req"
 	"github.com/treeyh/soc-go-boot/app/model/resp"
+	"github.com/treeyh/soc-go-common/core/utils/json"
 	"time"
 )
 
@@ -46,6 +48,13 @@ func Create() gin.HandlerFunc {
 		fmt.Println(context.Param("updateTime"))
 		fmt.Println(context.Query("updateTime"))
 		fmt.Println(context.GetPostForm("updateTime"))
+		user := req.UserReq{}
+		err := context.ShouldBindBodyWith(&user, binding.JSON)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		fmt.Println(json.ToJson(user))
 
 		context.JSON(200, resp.RespResult{
 			Code:    0,

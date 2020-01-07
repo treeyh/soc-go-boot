@@ -7,7 +7,6 @@ import (
 	"github.com/treeyh/soc-go-boot/app/model"
 	"github.com/treeyh/soc-go-boot/app/model/req"
 	"github.com/treeyh/soc-go-boot/app/model/resp"
-	"github.com/treeyh/soc-go-common/core/errors"
 	"github.com/treeyh/soc-go-common/core/logger"
 	"reflect"
 	"regexp"
