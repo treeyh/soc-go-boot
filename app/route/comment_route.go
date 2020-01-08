@@ -6,6 +6,14 @@ import (
 )
 
 func init() {
+	routeUrlMethodMapTmp := make(map[string]map[string]map[string][]string)
+
+	routeUrlMethodMapTmp["/user"] = make(map[string]map[string][]string)
+	routeUrlMethodMapTmp["/user"]["/create"] = make(map[string][]string)
+	routeUrlMethodMapTmp["/user"]["/create"]["*"] = make([]string, 1)
+	routeUrlMethodMapTmp["/user"]["/create"]["*"][0] = "UserController.Create"
+
+	routeUrlMethodMap = routeUrlMethodMapTmp
 
 	userController := &controller.UserController{}
 
@@ -89,14 +97,5 @@ func init() {
 		Func:     userController.Create,
 	}
 	handlerFuncMap = handlerFuncMapTmp
-
-	routeUrlMethodMapTmp := make(map[string]map[string]map[string][]string)
-
-	routeUrlMethodMapTmp["/user"] = make(map[string]map[string][]string)
-	routeUrlMethodMapTmp["/user"]["/create"] = make(map[string][]string)
-	routeUrlMethodMapTmp["/user"]["/create"]["*"] = make([]string, 1)
-	routeUrlMethodMapTmp["/user"]["/create"]["*"][0] = "UserController.Create"
-
-	routeUrlMethodMap = routeUrlMethodMapTmp
 
 }

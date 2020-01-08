@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+// @PreUrl /user 暂不支持
 type UserController struct {
 }
 
@@ -20,7 +21,8 @@ func (uc *UserController) PreUrl() string {
 	return "/user"
 }
 
-// @router /get/:userId [get,post]
+// @Param	userId		    query	 true	1	"The email for login"
+// @Router /get/:userId [get,post]
 func (uc *UserController) Get(ctx *req.GinContext, userId int64) *resp.RespResult {
 	return nil
 }
@@ -30,7 +32,7 @@ func (uc *UserController) Get(ctx *req.GinContext, userId int64) *resp.RespResul
 // @Param	createTime		query	 true	"2012-12-12 12:12:11"	"The email for login"
 // @Param	userId		    query	 true	1	"The email for login"
 // @Param	userName		query	 33222	"2012-12-12 12:12:11"	"The email for login"
-// @router /create [*]
+// @Router /create [*]
 func (uc *UserController) Create(ctx *req.GinContext, updateTime, createTime time.Time, userId int64, userName string, userReq *req.UserReq) *resp.HttpRespResult {
 	fmt.Println(updateTime)
 	fmt.Println(ctx.Ctx.Param("updateTime"))

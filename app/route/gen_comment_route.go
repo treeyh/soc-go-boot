@@ -27,20 +27,19 @@ func buildRouteMap(contrs ...controller.IController) {
 		return
 	}
 
-	//goModPath := filepath.Join(file.GetCurrentPath(), "..", "..", "go.mod")
-	//moduleName := readGoModModule(goModPath)
-
 	buildRouteMap, buildRouteMap2 := buildHandlerFuncMap(contrs...)
 
 	fmt.Println(json.ToJsonIgnoreError(buildRouteMap))
 	fmt.Println(json.ToJsonIgnoreError(buildRouteMap2))
 
-	//genRouterCode(pkgRealpath)
+	goModPath := filepath.Join(file.GetCurrentPath(), "..", "..", "go.mod")
+	moduleName := readGoModModule(goModPath)
+	genRouterCode(moduleName, buildRouteMap, buildRouteMap2)
 	//savetoFile(pkgRealpath)
 }
 
-// buildHandlerFuncMap 解析controller 构建 HandlerFucMap, 返回两个对象，一个key是controllerName.methodName,value是controller.method，第二个对象key是PreUrl, 子key是RouteUrl, value 是 controllerName.methodName 列表
-func buildHandlerFuncMap(contrs ...controller.IController) (*map[string]map[string]model.HandlerFuncInOut, *map[string]map[string][]string) {
+// buildHandlerFuncMap 解析controller 构建 HandlerFucMap, 返回两个对象，一个key是controllerName.methodName,value是controller.method，第二个对象key是PreUrl, 子key是RouteUrl, 再子key是httpMethod, value 是 controllerName.methodName 列表
+func buildHandlerFuncMap(contrs ...controller.IController) (*map[string]model.HandlerFuncInOut, *map[string]map[string]map[string][]string) {
 
 	// 构建需初始化controller列表，没有则全部初始化
 	controllerNames := *buildRouteControllerMap(contrs...)
@@ -58,8 +57,8 @@ func buildHandlerFuncMap(contrs ...controller.IController) (*map[string]map[stri
 		panic("build handler by controller fail. load " + controllerPath + " error: " + err.Error())
 	}
 
-	buildRouteMap := make(map[string]map[string]model.HandlerFuncInOut)
-	buildRouteMap2 := make(map[string]map[string][]string)
+	buildRouteMap := make(map[string]model.HandlerFuncInOut)
+	buildRouteMap2 := make(map[string]map[string]map[string][]string)
 	for _, pkg := range astPkgs {
 		for _, fl := range pkg.Files {
 			for _, d := range fl.Decls {
@@ -81,21 +80,32 @@ func buildHandlerFuncMap(contrs ...controller.IController) (*map[string]map[stri
 							// 不需要初始化
 							continue
 						}
-						handlerFunc := *(parseHandlerFunc(controllerName, preUrl, specDecl))
-
-						if _, ok := buildRouteMap[preUrl]; !ok {
-							buildRouteMap[preUrl] = make(map[string]model.HandlerFuncInOut)
-							buildRouteMap2[preUrl] = make(map[string][]string)
+						funcPtr := parseHandlerFunc(controllerName, preUrl, specDecl)
+						if funcPtr == nil {
+							continue
 						}
+						handlerFunc := *(funcPtr)
+
 						fullName := controllerName + "." + handlerFunc.Name
-						buildRouteMap[preUrl][fullName] = handlerFunc
+						if _, ok := buildRouteMap[fullName]; !ok {
+							buildRouteMap[fullName] = handlerFunc
+						}
+
+						if _, ok := buildRouteMap2[preUrl]; !ok {
+							buildRouteMap2[preUrl] = make(map[string]map[string][]string)
+						}
 
 						for _, v := range *handlerFunc.RouteMethods {
 							if _, ok := buildRouteMap2[preUrl][v.Route]; !ok {
-								buildRouteMap2[preUrl][v.Route] = make([]string, 0)
+								buildRouteMap2[preUrl][v.Route] = make(map[string][]string, 0)
+							}
+							for _, method := range v.Methods {
+								if _, ok := buildRouteMap2[preUrl][v.Route][method]; !ok {
+									buildRouteMap2[preUrl][v.Route][method] = make([]string, 0)
+								}
+								buildRouteMap2[preUrl][v.Route][method] = append(buildRouteMap2[preUrl][v.Route][method], fullName)
 							}
 
-							buildRouteMap2[preUrl][v.Route] = append(buildRouteMap2[preUrl][v.Route], fullName)
 						}
 					}
 				}
@@ -109,20 +119,23 @@ func buildHandlerFuncMap(contrs ...controller.IController) (*map[string]map[stri
 // parseHandlerFunc 构建HandlerFunc
 func parseHandlerFunc(controllerName, preUrl string, specDecl *ast.FuncDecl) *model.HandlerFuncInOut {
 
+	fmt.Println(controllerName)
+	fmt.Println(preUrl)
 	handlerRoute := model.HandlerFuncRoute{}
 	handlerRoute.PreUrl = preUrl
 	routeMethods := make([]model.RouteMethod, 0)
 	paramMaps := make(map[string]model.InParamsType, 0)
 	for _, v := range specDecl.Doc.List {
 		t := strings.TrimSpace(strings.TrimLeft(v.Text, "//"))
-		if !strings.HasPrefix(t, "@router") && !strings.HasPrefix(t, "@Param") {
+		if !strings.HasPrefix(t, "@Router") && !strings.HasPrefix(t, "@Param") {
 			continue
 		}
-		if strings.HasPrefix(t, "@router") {
+
+		if strings.HasPrefix(t, "@Router") {
 			matches := routeRegex.FindStringSubmatch(t)
 			routeMethod := model.RouteMethod{}
 			if len(matches) != 3 {
-				panic(" @route format does not to the rules. " + v.Text)
+				panic(" @Route format does not to the rules. " + v.Text)
 			}
 
 			routeMethod.Route = matches[1]
@@ -134,7 +147,7 @@ func parseHandlerFunc(controllerName, preUrl string, specDecl *ast.FuncDecl) *mo
 				routeMethod.Methods = strings.Split(methods, ",")
 				for _, httpMethod := range routeMethod.Methods {
 					if !strings.Contains(httpMethods, ","+httpMethod+",") {
-						panic(" @route http method format does not to the rules. " + httpMethod)
+						panic(" @Route http method format does not to the rules. " + httpMethod)
 					}
 				}
 			}

@@ -2,7 +2,6 @@ package route
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/treeyh/soc-go-boot/app/config"
 	"github.com/treeyh/soc-go-boot/app/controller"
 	"github.com/treeyh/soc-go-boot/app/model"
 	"github.com/treeyh/soc-go-boot/app/model/req"
@@ -20,7 +19,7 @@ var (
 	routeUrlMethodMap map[string]map[string]map[string][]string
 	groupRouteMap     map[string]*gin.RouterGroup
 
-	routeRegex = regexp.MustCompile(`@router\s+(\S+)(?:\s+\[(\S+)\])?`)
+	routeRegex = regexp.MustCompile(`@Router\s+(\S+)(?:\s+\[(\S+)\])?`)
 
 	demoString = "aaabbb"
 
@@ -73,21 +72,21 @@ func SetupRouter(engine *gin.Engine) {
 }
 
 func registerRoute(engine *gin.Engine, contrs ...controller.IController) {
-	//buildRouteMap(contrs...)
+	buildRouteMap(contrs...)
 
-	groupRouteMapTmp := make(map[string]*gin.RouterGroup)
-	for preUrl, suffixUrlMethodMap := range routeUrlMethodMap {
-		groupRouteMapTmp[preUrl] = engine.Group(config.GetSocConfig().App.Server.ContextPath + preUrl)
-		for suffixUrl, methodMap := range suffixUrlMethodMap {
-			for method, funcInOutKeys := range methodMap {
-				if "*" == method {
-					groupRouteMapTmp[preUrl].Any(suffixUrl, buildHandler(method, suffixUrl, getHandlerFuncInOutsByKey(&funcInOutKeys))...)
-					continue
-				}
-				groupRouteMapTmp[preUrl].Handle(method, suffixUrl, buildHandler(method, suffixUrl, getHandlerFuncInOutsByKey(&funcInOutKeys))...)
-			}
-		}
-	}
+	//groupRouteMapTmp := make(map[string]*gin.RouterGroup)
+	//for preUrl, suffixUrlMethodMap := range routeUrlMethodMap {
+	//	groupRouteMapTmp[preUrl] = engine.Group(config.GetSocConfig().App.Server.ContextPath + preUrl)
+	//	for suffixUrl, methodMap := range suffixUrlMethodMap {
+	//		for method, funcInOutKeys := range methodMap {
+	//			if "*" == method {
+	//				groupRouteMapTmp[preUrl].Any(suffixUrl, buildHandler(method, suffixUrl, getHandlerFuncInOutsByKey(&funcInOutKeys))...)
+	//				continue
+	//			}
+	//			groupRouteMapTmp[preUrl].Handle(method, suffixUrl, buildHandler(method, suffixUrl, getHandlerFuncInOutsByKey(&funcInOutKeys))...)
+	//		}
+	//	}
+	//}
 }
 
 func getHandlerFuncInOutsByKey(keys *[]string) []model.HandlerFuncInOut {
