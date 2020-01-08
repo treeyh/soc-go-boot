@@ -1,7 +1,6 @@
 package route
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/treeyh/soc-go-boot/app/config"
 	"github.com/treeyh/soc-go-boot/app/controller"
@@ -9,7 +8,6 @@ import (
 	"github.com/treeyh/soc-go-boot/app/model/req"
 	"github.com/treeyh/soc-go-boot/app/model/resp"
 	"github.com/treeyh/soc-go-common/core/logger"
-	"github.com/treeyh/soc-go-common/core/utils/json"
 	"reflect"
 	"regexp"
 	"strings"
@@ -194,10 +192,8 @@ func checkParamExistUrl(urlPaths *[]string, param string) bool {
 }
 
 func httpHandler(handlerFunc model.HandlerFuncInOut) gin.HandlerFunc {
-	fmt.Println("------------------" + json.ToJsonIgnoreError(handlerFunc))
 	return func(ctx *gin.Context) {
 
-		fmt.Println("------------------" + json.ToJsonIgnoreError(handlerFunc))
 		ginContext := req.GinContext{Ctx: ctx}
 		respData, err := injectFunc(&ginContext, handlerFunc)
 

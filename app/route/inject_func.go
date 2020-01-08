@@ -1,7 +1,6 @@
 package route
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	socconsts "github.com/treeyh/soc-go-boot/app/common/consts"
@@ -11,7 +10,6 @@ import (
 	"github.com/treeyh/soc-go-common/core/errors"
 	"github.com/treeyh/soc-go-common/core/logger"
 	"github.com/treeyh/soc-go-common/core/types"
-	"github.com/treeyh/soc-go-common/core/utils/json"
 	"reflect"
 	"strconv"
 	"time"
@@ -114,7 +112,6 @@ func init() {
 }
 
 func injectFunc(ctx *req.GinContext, handlerFunc model.HandlerFuncInOut) ([]reflect.Value, errors.AppError) {
-	fmt.Println(json.ToJson(handlerFunc))
 	inputValues := make([]reflect.Value, handlerFunc.InCount)
 	if handlerFunc.InCount > 0 {
 		for i, inParam := range *handlerFunc.Ins {
@@ -165,7 +162,6 @@ func injectFunc(ctx *req.GinContext, handlerFunc model.HandlerFuncInOut) ([]refl
 		}
 	}
 
-	fmt.Println(json.ToJson(inputValues))
 	return reflect.ValueOf(handlerFunc.Func).Call(inputValues), nil
 }
 
