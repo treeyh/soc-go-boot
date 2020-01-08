@@ -28,7 +28,7 @@ func (uc *UserController) Get(ctx *req.GinContext, userId int64) *resp.RespResul
 // Param@   参数名（对应方法中参数名）      取值来源（formData、query、path、body、header(参数名"-"用"_"符号代替)）   是否必须(true,false)  "默认值（可以没有）"   "注释"
 // @Param	updateTime		query	 true	"2012-12-12 12:12:11"	"The email for login"
 // @Param	createTime		query	 true	"2012-12-12 12:12:11"	"The email for login"
-// @Param	userId		query	 true	1	"The email for login"
+// @Param	userId		    query	 true	1	"The email for login"
 // @Param	userName		query	 33222	"2012-12-12 12:12:11"	"The email for login"
 // @router /create [*]
 func (uc *UserController) Create(ctx *req.GinContext, updateTime, createTime time.Time, userId int64, userName string, userReq *req.UserReq) *resp.HttpRespResult {
@@ -39,8 +39,8 @@ func (uc *UserController) Create(ctx *req.GinContext, updateTime, createTime tim
 
 	return resp.OkHttpRespResult(&resp.RespResult{
 		Code:    0,
-		Message: "",
-		Data:    nil,
+		Message: updateTime.String(),
+		Data:    userReq,
 	})
 }
 

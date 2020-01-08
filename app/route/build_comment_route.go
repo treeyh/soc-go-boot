@@ -39,8 +39,8 @@ func buildRouteMap(contrs ...controller.IController) {
 	//savetoFile(pkgRealpath)
 }
 
-// buildHandlerFuncMap 解析controller 构建 HandlerFucMap, 返回两个对象，一个key是preurl,子key是controllerName.methodName，第二个对象key是PreUrl, 子key是RouteUrl
-func buildHandlerFuncMap(contrs ...controller.IController) (*map[string]map[string]model.HandlerFuncInOut, *map[string]map[string][]model.HandlerFuncInOut) {
+// buildHandlerFuncMap 解析controller 构建 HandlerFucMap, 返回两个对象，一个key是controllerName.methodName,value是controller.method，第二个对象key是PreUrl, 子key是RouteUrl, value 是 controllerName.methodName 列表
+func buildHandlerFuncMap(contrs ...controller.IController) (*map[string]map[string]model.HandlerFuncInOut, *map[string]map[string][]string) {
 
 	// 构建需初始化controller列表，没有则全部初始化
 	controllerNames := *buildRouteControllerMap(contrs...)
@@ -59,7 +59,7 @@ func buildHandlerFuncMap(contrs ...controller.IController) (*map[string]map[stri
 	}
 
 	buildRouteMap := make(map[string]map[string]model.HandlerFuncInOut)
-	buildRouteMap2 := make(map[string]map[string][]model.HandlerFuncInOut)
+	buildRouteMap2 := make(map[string]map[string][]string)
 	for _, pkg := range astPkgs {
 		for _, fl := range pkg.Files {
 			for _, d := range fl.Decls {
@@ -85,15 +85,17 @@ func buildHandlerFuncMap(contrs ...controller.IController) (*map[string]map[stri
 
 						if _, ok := buildRouteMap[preUrl]; !ok {
 							buildRouteMap[preUrl] = make(map[string]model.HandlerFuncInOut)
-							buildRouteMap2[preUrl] = make(map[string][]model.HandlerFuncInOut)
+							buildRouteMap2[preUrl] = make(map[string][]string)
 						}
-						buildRouteMap[preUrl][controllerName+"."+handlerFunc.Name] = handlerFunc
+						fullName := controllerName + "." + handlerFunc.Name
+						buildRouteMap[preUrl][fullName] = handlerFunc
+
 						for _, v := range *handlerFunc.RouteMethods {
 							if _, ok := buildRouteMap2[preUrl][v.Route]; !ok {
-								buildRouteMap2[preUrl][v.Route] = make([]model.HandlerFuncInOut, 0)
+								buildRouteMap2[preUrl][v.Route] = make([]string, 0)
 							}
 
-							buildRouteMap2[preUrl][v.Route] = append(buildRouteMap2[preUrl][v.Route], handlerFunc)
+							buildRouteMap2[preUrl][v.Route] = append(buildRouteMap2[preUrl][v.Route], fullName)
 						}
 					}
 				}

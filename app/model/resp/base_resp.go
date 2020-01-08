@@ -28,6 +28,10 @@ func JsonRespResult(g *req.GinContext, resp *RespResult) {
 	g.Ctx.JSON(200, resp)
 }
 
+func JsonHttpRespResult(g *req.GinContext, resp *HttpRespResult) {
+	g.Ctx.JSON(resp.HttpStatus, resp.RespResult)
+}
+
 func OkHttpRespResult(resp *RespResult) *HttpRespResult {
 	return &HttpRespResult{
 		RespResult: *resp,

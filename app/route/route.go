@@ -121,68 +121,60 @@ func buildHandler(method, suffixUrl string, handlerFuncs []model.HandlerFuncInOu
 		urlPaths := strings.Split(suffixUrl, "/")
 		// 构建输入参数列表
 		maxIndex := len(*handlerFunc.Ins) - 1
-		for i, inParam := range *handlerFunc.Ins {
+		for i, _ := range *handlerFunc.Ins {
 			elem := targetType.In(i)
 			isPtr := elem.Kind() == reflect.Ptr
-			inParam.IsPointer = isPtr
+			(*handlerFunc.Ins)[i].IsPointer = isPtr
 			if isPtr {
-				inParam.Kind = elem.Elem().Kind()
-				inParam.Type = elem.Elem()
+				(*handlerFunc.Ins)[i].Kind = elem.Elem().Kind()
+				(*handlerFunc.Ins)[i].Type = elem.Elem()
 			} else {
-				inParam.Kind = elem.Kind()
-				inParam.Type = elem
+				(*handlerFunc.Ins)[i].Kind = elem.Kind()
+				(*handlerFunc.Ins)[i].Type = elem
 			}
-			//fmt.Println(inParam.Name)
-			//fmt.Println(inParam.Kind.String())
-			//fmt.Println(inParam.Type.String())
-			//fmt.Println("====")
 			if i == 0 {
-				if i == 0 && (!inParam.IsPointer || inParam.Kind.String() != "struct" || inParam.Type.String() != "req.GinContext") {
+				if i == 0 && (!(*handlerFunc.Ins)[i].IsPointer || (*handlerFunc.Ins)[i].Kind.String() != "struct" || (*handlerFunc.Ins)[i].Type.String() != "req.GinContext") {
 					panic(methodName + " The first parameter needs to be *gin.Context. ")
 				}
-				inParam.AssignType = model.UnAssign
+				(*handlerFunc.Ins)[i].AssignType = model.UnAssign
 				continue
 			}
 
-			if inParam.AssignType == model.UnAssign {
+			if (*handlerFunc.Ins)[i].AssignType == model.UnAssign {
 				// 若没有指定获取方式，通过程序判定
-				if checkParamExistUrl(&urlPaths, inParam.Name) {
-					inParam.AssignType = model.PathAssign
+				if checkParamExistUrl(&urlPaths, (*handlerFunc.Ins)[i].Name) {
+					(*handlerFunc.Ins)[i].AssignType = model.PathAssign
 				} else if method == "GET" || i < maxIndex {
-					inParam.AssignType = model.QueryAssign
-				} else if inParam.Kind.String() == "struct" && inParam.Type.String() != "time.Time" && inParam.Type.String() != "types.Time" {
-					inParam.AssignType = model.BodyAssign
+					(*handlerFunc.Ins)[i].AssignType = model.QueryAssign
+				} else if (*handlerFunc.Ins)[i].Kind.String() == "struct" && (*handlerFunc.Ins)[i].Type.String() != "time.Time" && (*handlerFunc.Ins)[i].Type.String() != "types.Time" {
+					(*handlerFunc.Ins)[i].AssignType = model.BodyAssign
 				} else {
-					inParam.AssignType = model.QueryAssign
+					(*handlerFunc.Ins)[i].AssignType = model.QueryAssign
 				}
 			}
-			fmt.Println(inParam.AssignType)
-			fmt.Println("====" + inParam.Kind.String())
-			fmt.Println("====" + inParam.Type.String())
+			//fmt.Println((*handlerFunc.Ins)[i].AssignType)
+			//fmt.Println("====" + (*handlerFunc.Ins)[i].Kind.String())
+			//fmt.Println("====" + (*handlerFunc.Ins)[i].Type.String())
 		}
 		handlerFunc.InCount = maxIndex + 1
 
 		// 构建输出参数
-		for i, outParam := range *handlerFunc.Outs {
+		for i, _ := range *handlerFunc.Outs {
 			elem := targetType.Out(i)
 			isPtr := elem.Kind() == reflect.Ptr
-			outParam.IsPointer = isPtr
+			(*handlerFunc.Outs)[i].IsPointer = isPtr
 			if isPtr {
-				outParam.Kind = elem.Elem().Kind()
-				outParam.Type = elem.Elem()
+				(*handlerFunc.Outs)[i].Kind = elem.Elem().Kind()
+				(*handlerFunc.Outs)[i].Type = elem.Elem()
 			} else {
-				outParam.Kind = elem.Kind()
-				outParam.Type = elem.Elem()
+				(*handlerFunc.Outs)[i].Kind = elem.Kind()
+				(*handlerFunc.Outs)[i].Type = elem.Elem()
 			}
-			fmt.Println("====" + outParam.Kind.String())
-			if i == 0 && (!isPtr || outParam.Kind.String() != "struct" || outParam.Type.String() != "resp.HttpRespResult") {
+			if i == 0 && (!isPtr || (*handlerFunc.Outs)[i].Kind.String() != "struct" || (*handlerFunc.Outs)[i].Type.String() != "resp.HttpRespResult") {
 				panic(methodName + " The return value is only one and must be *resp.HttpRespResult. ")
 			}
 		}
 		handlerFunc.OutCount = len(*handlerFunc.Outs)
-
-		fmt.Println("===111")
-		fmt.Println(json.ToJsonIgnoreError(handlerFunc))
 
 		handlers = append(handlers, httpHandler(handlerFunc))
 	}
@@ -202,23 +194,28 @@ func checkParamExistUrl(urlPaths *[]string, param string) bool {
 }
 
 func httpHandler(handlerFunc model.HandlerFuncInOut) gin.HandlerFunc {
+	fmt.Println("------------------" + json.ToJsonIgnoreError(handlerFunc))
 	return func(ctx *gin.Context) {
 
+		fmt.Println("------------------" + json.ToJsonIgnoreError(handlerFunc))
 		ginContext := req.GinContext{Ctx: ctx}
 		respData, err := injectFunc(&ginContext, handlerFunc)
 
-		var respObj resp.RespResult
+		var respObj *resp.HttpRespResult
 		if err != nil {
 			logger.Logger().Error(err)
-			respObj = resp.RespResult{
-				Code:    err.Code(),
-				Message: err.Message(),
+			respObj = &resp.HttpRespResult{
+				HttpStatus: 500,
+				RespResult: resp.RespResult{
+					Code:    err.Code(),
+					Message: err.Message(),
+				},
 			}
 		} else {
 			if len(respData) > 0 {
-				respObj = (respData)[0].Interface().(resp.RespResult)
+				respObj = (respData)[0].Interface().(*resp.HttpRespResult)
 			}
 		}
-		resp.JsonRespResult(&ginContext, &respObj)
+		resp.JsonHttpRespResult(&ginContext, respObj)
 	}
 }

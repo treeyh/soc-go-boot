@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/treeyh/soc-go-boot/app/common/consts"
+	socconsts "github.com/treeyh/soc-go-boot/app/common/consts"
 	"github.com/treeyh/soc-go-boot/app/model"
 	"github.com/treeyh/soc-go-boot/app/model/req"
+	"github.com/treeyh/soc-go-common/core/consts"
 	"github.com/treeyh/soc-go-common/core/errors"
 	"github.com/treeyh/soc-go-common/core/logger"
+	"github.com/treeyh/soc-go-common/core/types"
 	"github.com/treeyh/soc-go-common/core/utils/json"
 	"reflect"
 	"strconv"
+	"time"
 )
 
 var (
@@ -119,11 +122,11 @@ func injectFunc(ctx *req.GinContext, handlerFunc model.HandlerFuncInOut) ([]refl
 				inputValues[i] = reflect.ValueOf(ctx)
 				continue
 			}
-			fmt.Println("i===" + strconv.Itoa(i))
-			fmt.Println(inParam.Kind.String())
-			fmt.Println(inParam.Type.String())
-			fmt.Println(inputValues[0].Kind().String())
-			fmt.Println(inputValues[0].String())
+			//fmt.Println("i===" + strconv.Itoa(i))
+			//fmt.Println(inParam.Kind.String())
+			//fmt.Println(inParam.Type.String())
+			//fmt.Println(inputValues[0].Kind().String())
+			//fmt.Println(inputValues[0].String())
 			if inParam.AssignType == model.UnAssign {
 				continue
 			}
@@ -134,35 +137,70 @@ func injectFunc(ctx *req.GinContext, handlerFunc model.HandlerFuncInOut) ([]refl
 					logger.Logger().Error(err)
 					return nil, err
 				}
-				fmt.Println(json.ToJson(val))
+				//fmt.Println(json.ToJson(val))
 				inputValues[i] = *val
 				continue
 			}
 
 			val := getParamString(ctx.Ctx, &inParam)
-			fmt.Println("val:" + val)
 			if v, ok := ParamConverter[inParam.Kind]; ok {
-				value, err := v(val)
+				value, err := parseBaseType(val, v, &inParam)
 				if err != nil {
 					logger.Logger().Error(err)
-					return nil, errors.NewAppErrorByExistError(consts.PARSE_PARAM_ERROR, err, inParam.Name)
+					return nil, err
 				}
-				va := reflect.ValueOf(value)
-				if !inParam.IsPointer {
-					va = va.Addr()
-				}
-				inputValues[i] = va
+				inputValues[i] = *value
 				continue
 			}
 
-			// TODO time trans
-			//if
+			if inParam.Type.String() == "time.Time" || inParam.Type.String() == "types.Time" {
+				value, err := parseTimeType(val, &inParam)
+				if err != nil {
+					logger.Logger().Error(err)
+					return nil, err
+				}
+				inputValues[i] = *value
+				continue
+			}
 		}
-
 	}
 
 	fmt.Println(json.ToJson(inputValues))
 	return reflect.ValueOf(handlerFunc.Func).Call(inputValues), nil
+}
+
+// parseBaseType 转换基本类型
+func parseBaseType(val string, funcc func(v string) (interface{}, error), inParam *model.InParamsType) (*reflect.Value, errors.AppError) {
+	value, err := funcc(val)
+	if err != nil {
+		logger.Logger().Error(err)
+		return nil, errors.NewAppErrorByExistError(socconsts.PARSE_PARAM_ERROR, err, inParam.Name)
+	}
+	va := reflect.ValueOf(value)
+	if !inParam.IsPointer {
+		va = va.Elem()
+	}
+	return &va, nil
+}
+
+// parseTimeType 转换时间类型
+func parseTimeType(val string, inParam *model.InParamsType) (*reflect.Value, errors.AppError) {
+	t, err := time.Parse(consts.AppTimeFormat, val)
+	if err != nil {
+		logger.Logger().Error(err)
+		return nil, errors.NewAppErrorByExistError(socconsts.PARSE_PARAM_ERROR, err, inParam.Name)
+	}
+	var va reflect.Value
+	if inParam.Type.String() == "types.Time" {
+		tt := types.Time(t)
+		va = reflect.ValueOf(tt)
+	} else {
+		va = reflect.ValueOf(t)
+	}
+	if inParam.IsPointer {
+		va = va.Addr()
+	}
+	return &va, nil
 }
 
 // getParamString 根据获取类型，获取参数string
@@ -180,7 +218,6 @@ func getParamString(ctx *gin.Context, inParam *model.InParamsType) string {
 	}
 
 	return ""
-
 }
 
 func parseBody(ctx *gin.Context, inParam *model.InParamsType) (*reflect.Value, errors.AppError) {
@@ -189,10 +226,10 @@ func parseBody(ctx *gin.Context, inParam *model.InParamsType) (*reflect.Value, e
 	err := ctx.ShouldBindBodyWith(&targetInterface, binding.JSON)
 	if err != nil {
 		logger.Logger().Error(err)
-		return nil, errors.NewAppErrorByExistError(consts.PARSE_PARAM_ERROR, err, inParam.Name)
+		return nil, errors.NewAppErrorByExistError(socconsts.PARSE_PARAM_ERROR, err, inParam.Name)
 	}
 	if !inParam.IsPointer {
-		newStrut = newStrut.Addr()
+		newStrut = newStrut.Elem()
 	}
 	return &newStrut, nil
 }
