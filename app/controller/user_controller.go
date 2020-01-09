@@ -23,7 +23,7 @@ func (uc *UserController) PreUrl() string {
 
 // @Param	userId		    query	 true	1	"The email for login"
 // @Router /get/:userId [get,post]
-func (uc *UserController) Get(ctx *req.GinContext, userId int64) *resp.RespResult {
+func (uc *UserController) Get(ctx *req.GinContext, userId int64) *resp.HttpRespResult {
 	return nil
 }
 

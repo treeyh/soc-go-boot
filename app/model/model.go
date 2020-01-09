@@ -52,3 +52,22 @@ type HandlerFuncRoute struct {
 	PreUrl            string              `json:"preUrl"`
 	HandlerFuncInOuts *[]HandlerFuncInOut `json:"handlerFuncInOuts"`
 }
+
+func (h HttpParamsAssignType) String() string {
+	switch h {
+	case UnAssign:
+		return "UnAssign"
+	case PathAssign:
+		return "PathAssign"
+	case QueryAssign:
+		return "QueryAssign"
+	case PostFormAssign:
+		return "PostFormAssign"
+	case BodyAssign:
+		return "BodyAssign"
+	case HeaderAssign:
+		return "HeaderAssign"
+	default:
+		return "UNKNOWN"
+	}
+}

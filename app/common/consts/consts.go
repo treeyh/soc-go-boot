@@ -12,3 +12,11 @@ const (
 
 	TraceParentSpanContextKey = "SOC-ParentSpanContext"
 )
+
+// LineSep 换行符
+const (
+	LineSep = "\n"
+
+	// EmptyStr 空字符串
+	EmptyStr = ""
+)

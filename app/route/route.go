@@ -2,6 +2,7 @@ package route
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/treeyh/soc-go-boot/app/config"
 	"github.com/treeyh/soc-go-boot/app/controller"
 	"github.com/treeyh/soc-go-boot/app/model"
 	"github.com/treeyh/soc-go-boot/app/model/req"
@@ -17,35 +18,12 @@ const httpMethods = ",GET,POST,DELETE,PATCH,PUT,OPTIONS,HEAD,*,"
 var (
 	handlerFuncMap    map[string]model.HandlerFuncInOut
 	routeUrlMethodMap map[string]map[string]map[string][]string
-	groupRouteMap     map[string]*gin.RouterGroup
+	routeCodeMd5      string
+
+	groupRouteMap map[string]*gin.RouterGroup
 
 	routeRegex = regexp.MustCompile(`@Router\s+(\S+)(?:\s+\[(\S+)\])?`)
-
-	demoString = "aaabbb"
-
-	goTemplate = `package route
-
-
-func init(){
-	demoString = "{{.globalinfo}}"
-}`
 )
-
-//func DemoPrint() {
-//	path := file.GetCurrentPath()
-//
-//	fmt.Println(filepath.Join(path, "abc.go"))
-//	f, err := os.Create(filepath.Join(path, "abc.go"))
-//	if err != nil {
-//		panic(err)
-//	}
-//	defer f.Close()
-//
-//	content := strings.ReplaceAll(goTemplate, "{{.globalinfo}}", "cccccc")
-//	f.WriteString(content)
-//
-//	fmt.Println(demoString)
-//}
 
 func SetupRouter(engine *gin.Engine) {
 
@@ -74,19 +52,19 @@ func SetupRouter(engine *gin.Engine) {
 func registerRoute(engine *gin.Engine, contrs ...controller.IController) {
 	buildRouteMap(contrs...)
 
-	//groupRouteMapTmp := make(map[string]*gin.RouterGroup)
-	//for preUrl, suffixUrlMethodMap := range routeUrlMethodMap {
-	//	groupRouteMapTmp[preUrl] = engine.Group(config.GetSocConfig().App.Server.ContextPath + preUrl)
-	//	for suffixUrl, methodMap := range suffixUrlMethodMap {
-	//		for method, funcInOutKeys := range methodMap {
-	//			if "*" == method {
-	//				groupRouteMapTmp[preUrl].Any(suffixUrl, buildHandler(method, suffixUrl, getHandlerFuncInOutsByKey(&funcInOutKeys))...)
-	//				continue
-	//			}
-	//			groupRouteMapTmp[preUrl].Handle(method, suffixUrl, buildHandler(method, suffixUrl, getHandlerFuncInOutsByKey(&funcInOutKeys))...)
-	//		}
-	//	}
-	//}
+	groupRouteMapTmp := make(map[string]*gin.RouterGroup)
+	for preUrl, suffixUrlMethodMap := range routeUrlMethodMap {
+		groupRouteMapTmp[preUrl] = engine.Group(config.GetSocConfig().App.Server.ContextPath + preUrl)
+		for suffixUrl, methodMap := range suffixUrlMethodMap {
+			for method, funcInOutKeys := range methodMap {
+				if "*" == method {
+					groupRouteMapTmp[preUrl].Any(suffixUrl, buildHandler(method, preUrl, suffixUrl, getHandlerFuncInOutsByKey(&funcInOutKeys))...)
+					continue
+				}
+				groupRouteMapTmp[preUrl].Handle(method, suffixUrl, buildHandler(method, preUrl, suffixUrl, getHandlerFuncInOutsByKey(&funcInOutKeys))...)
+			}
+		}
+	}
 }
 
 func getHandlerFuncInOutsByKey(keys *[]string) []model.HandlerFuncInOut {
@@ -98,7 +76,7 @@ func getHandlerFuncInOutsByKey(keys *[]string) []model.HandlerFuncInOut {
 }
 
 // buildHandler 构造 处理handler
-func buildHandler(method, suffixUrl string, handlerFuncs []model.HandlerFuncInOut) []gin.HandlerFunc {
+func buildHandler(method, preUrl, suffixUrl string, handlerFuncs []model.HandlerFuncInOut) []gin.HandlerFunc {
 
 	handlers := make([]gin.HandlerFunc, 0, len(handlerFuncs))
 
@@ -173,7 +151,7 @@ func buildHandler(method, suffixUrl string, handlerFuncs []model.HandlerFuncInOu
 		}
 		handlerFunc.OutCount = len(*handlerFunc.Outs)
 
-		handlers = append(handlers, httpHandler(handlerFunc))
+		handlers = append(handlers, httpHandler(method, preUrl, suffixUrl, handlerFunc))
 	}
 	return handlers
 }
@@ -190,7 +168,10 @@ func checkParamExistUrl(urlPaths *[]string, param string) bool {
 	return false
 }
 
-func httpHandler(handlerFunc model.HandlerFuncInOut) gin.HandlerFunc {
+func httpHandler(method, preUrl, suffixUrl string, handlerFunc model.HandlerFuncInOut) gin.HandlerFunc {
+
+	logger.Logger().Info("Handler path: " + method + " " + preUrl + suffixUrl + "      -->      " + handlerFunc.ControllerName + "." + handlerFunc.Name)
+
 	return func(ctx *gin.Context) {
 
 		ginContext := req.GinContext{Ctx: ctx}
