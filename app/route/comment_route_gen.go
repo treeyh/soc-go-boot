@@ -8,6 +8,10 @@ import (
 func init() {
 	routeCodeMd5 = "125ce18e142df552252149ab47b5bf20"
 
+}
+
+func initRouteInfo() {
+
 	routeUrlMethodMapTmp := make(map[string]map[string]map[string][]string)
 
 	routeUrlMethodMapTmp["/user"] = make(map[string]map[string][]string)

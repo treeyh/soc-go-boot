@@ -19,6 +19,7 @@ var (
 	handlerFuncMap    map[string]model.HandlerFuncInOut
 	routeUrlMethodMap map[string]map[string]map[string][]string
 	routeCodeMd5      string
+	routeTempSign     string
 
 	groupRouteMap map[string]*gin.RouterGroup
 

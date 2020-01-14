@@ -1,6 +1,7 @@
 package route
 
 import (
+	"fmt"
 	"github.com/treeyh/soc-go-boot/app/common/consts"
 	"github.com/treeyh/soc-go-boot/app/model"
 	"github.com/treeyh/soc-go-common/core/logger"
@@ -12,6 +13,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -23,7 +25,11 @@ import (
 )
 
 func init() {
-{{.globalInfo}}
+{{.md5CodeInfo}}
+}
+
+func initRouteInfo() {
+{{.routeCodeInfo}}
 }
 `
 
@@ -76,7 +82,19 @@ func genRouterCode(moduleName string, buildRouteMethodMap *map[string]model.Hand
 
 	md5Code := BlankStr + "routeCodeMd5 = \"" + routeCodeMd5New + "\" " + consts.LineSep
 
-	saveGenCodeFile("comment_route.go", moduleName, md5Code+pathMapCode+consts.LineSep+consts.LineSep+funcListCode)
+	content := strings.ReplaceAll(globalRouterTemplate, "{{.routersDir}}", "route")
+	content = strings.ReplaceAll(content, "{{.appModuleName}}", moduleName)
+	content = strings.ReplaceAll(content, "{{.md5CodeInfo}}", md5Code)
+	content = strings.ReplaceAll(content, "{{.routeCodeInfo}}", BlankStr+""+consts.LineSep+pathMapCode+consts.LineSep+consts.LineSep+funcListCode)
+
+	saveGenCodeFile("comment_route_gen.go", content)
+
+	time.Sleep(5 * time.Second)
+
+	//initRouteInfo()
+	fmt.Println("Routing code regenerated, please restart ......")
+
+	os.Exit(0)
 }
 
 // genPathMapCode 构造url path 的map代码
@@ -156,7 +174,7 @@ func genHandlerFuncMapCode(buildRouteMethodMap *map[string]model.HandlerFuncInOu
 }
 
 // saveGenCodeFile 保存生成code
-func saveGenCodeFile(fileName, moduleName, initContent string) {
+func saveGenCodeFile(fileName, content string) {
 	path := file.GetCurrentPath()
 
 	filePath := filepath.Join(path, fileName)
@@ -167,8 +185,5 @@ func saveGenCodeFile(fileName, moduleName, initContent string) {
 	}
 	defer f.Close()
 
-	content := strings.ReplaceAll(globalRouterTemplate, "{{.routersDir}}", "route")
-	content = strings.ReplaceAll(content, "{{.appModuleName}}", moduleName)
-	content = strings.ReplaceAll(content, "{{.globalInfo}}", initContent)
 	f.WriteString(content)
 }
