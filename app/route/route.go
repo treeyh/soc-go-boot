@@ -1,6 +1,7 @@
 package route
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/treeyh/soc-go-boot/app/config"
 	"github.com/treeyh/soc-go-boot/app/controller"
@@ -16,10 +17,19 @@ import (
 const httpMethods = ",GET,POST,DELETE,PATCH,PUT,OPTIONS,HEAD,*,"
 
 var (
-	handlerFuncMap    map[string]model.HandlerFuncInOut
-	routeUrlMethodMap map[string]map[string]map[string][]string
-	routeCodeMd5      string
-	routeTempSign     string
+
+	// handlerFuncMap1 系统使用，自动初始化
+	handlerFuncMap1 map[string]model.HandlerFuncInOut
+	// routeUrlMethodMap1 系统使用，自动初始化
+	routeUrlMethodMap1 map[string]map[string]map[string][]string
+
+	// handlerFuncMap2 系统使用，自动初始化
+	handlerFuncMap2 map[string]model.HandlerFuncInOut
+	// routeUrlMethodMap2 系统使用，自动初始化
+	routeUrlMethodMap2 map[string]map[string]map[string][]string
+
+	routeCodeMd5  string
+	routeTempSign string
 
 	groupRouteMap map[string]*gin.RouterGroup
 
@@ -54,6 +64,15 @@ func registerRoute(engine *gin.Engine, contrs ...controller.IController) {
 	buildRouteMap(contrs...)
 
 	groupRouteMapTmp := make(map[string]*gin.RouterGroup)
+
+	routeUrlMethodMap := routeUrlMethodMap1
+	if routeUrlMethodMap1 == nil {
+		fmt.Println(" route routeUrlMethodMap2 ............")
+		routeUrlMethodMap = routeUrlMethodMap2
+	} else {
+		fmt.Println(" route routeUrlMethodMap1 ............")
+	}
+
 	for preUrl, suffixUrlMethodMap := range routeUrlMethodMap {
 		groupRouteMapTmp[preUrl] = engine.Group(config.GetSocConfig().App.Server.ContextPath + preUrl)
 		for suffixUrl, methodMap := range suffixUrlMethodMap {
@@ -70,6 +89,15 @@ func registerRoute(engine *gin.Engine, contrs ...controller.IController) {
 
 func getHandlerFuncInOutsByKey(keys *[]string) []model.HandlerFuncInOut {
 	funcs := make([]model.HandlerFuncInOut, 0, len(*keys))
+
+	handlerFuncMap := handlerFuncMap1
+	if handlerFuncMap1 == nil {
+		fmt.Println(" route handlerFuncMap2 ............")
+		handlerFuncMap = handlerFuncMap2
+	} else {
+		fmt.Println(" route handlerFuncMap1 ............")
+	}
+
 	for _, v := range *keys {
 		funcs = append(funcs, handlerFuncMap[v])
 	}

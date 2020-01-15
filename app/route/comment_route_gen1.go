@@ -11,6 +11,7 @@ func init() {
 }
 
 func initRouteInfo() {
+	routeCodeMd5 = "125ce18e142df552252149ab47b5bf20"
 
 	routeUrlMethodMapTmp := make(map[string]map[string]map[string][]string)
 
@@ -24,7 +25,7 @@ func initRouteInfo() {
 	routeUrlMethodMapTmp["/user"]["/create"]["*"] = make([]string, 1)
 	routeUrlMethodMapTmp["/user"]["/create"]["*"][0] = "UserController.Create"
 
-	routeUrlMethodMap = routeUrlMethodMapTmp
+	routeUrlMethodMap1 = routeUrlMethodMapTmp
 
 	userController := &controller.UserController{}
 	handlerFuncMapTmp := make(map[string]model.HandlerFuncInOut)
@@ -145,5 +146,5 @@ func initRouteInfo() {
 		Func:     userController.Create,
 	}
 
-	handlerFuncMap = handlerFuncMapTmp
+	handlerFuncMap1 = handlerFuncMapTmp
 }
