@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"github.com/treeyh/soc-go-boot/app/common/consts"
 	"github.com/treeyh/soc-go-boot/app/model"
-	"github.com/treeyh/soc-go-common/core/logger"
-	"github.com/treeyh/soc-go-common/core/utils/encrypt"
 	"github.com/treeyh/soc-go-common/core/utils/file"
-	"github.com/treeyh/soc-go-common/core/utils/json"
 	"github.com/treeyh/soc-go-common/core/utils/strs"
 	"os"
 	"path/filepath"
@@ -25,12 +22,9 @@ import (
 )
 
 func init() {
-{{.md5CodeInfo}}
+	{{.routeCodeInfo}}
 }
 
-func initRouteInfo() {
-{{.routeCodeInfo}}
-}
 `
 
 	handlerFuncMapTemplate = `model.HandlerFuncInOut{
@@ -63,35 +57,35 @@ func initRouteInfo() {
 
 	handlerFuncOutParamTemplate = `			{},`
 
-	BlankStr = "    "
+	blankStr = "    "
+
+	genFileName = "comment_route_gen.go"
 )
 
 // genRouterCode 构建路由初始化代码
 func genRouterCode(moduleName string, buildRouteMethodMap *map[string]model.HandlerFuncInOut, buildRoutePathMap *map[string]map[string]map[string][]string) {
 
-	routeCodeMd5New := encrypt.Md5V(json.ToJsonIgnoreError(buildRouteMethodMap) + json.ToJsonIgnoreError(buildRoutePathMap))
+	path := file.GetCurrentPath()
+	filePath := filepath.Join(path, genFileName)
 
-	logger.Logger().Info(" Gen route code md5: " + routeCodeMd5New)
-	if routeCodeMd5 == routeCodeMd5New {
-		logger.Logger().Info(" Gen route code  md5 same ignore generatio. " + routeCodeMd5)
-		return
+	handlerFuncMap = nil
+	routeUrlMethodMap = nil
+	if file.ExistFile(filePath) {
+		os.Remove(filePath)
 	}
 
 	pathMapCode := genPathMapCode(buildRoutePathMap)
 	funcListCode := genHandlerFuncMapCode(buildRouteMethodMap)
 
-	md5Code := BlankStr + "routeCodeMd5 = \"" + routeCodeMd5New + "\" " + consts.LineSep
-
 	content := strings.ReplaceAll(globalRouterTemplate, "{{.routersDir}}", "route")
 	content = strings.ReplaceAll(content, "{{.appModuleName}}", moduleName)
-	content = strings.ReplaceAll(content, "{{.md5CodeInfo}}", md5Code)
-	content = strings.ReplaceAll(content, "{{.routeCodeInfo}}", BlankStr+""+consts.LineSep+pathMapCode+consts.LineSep+consts.LineSep+funcListCode)
 
-	saveGenCodeFile("comment_route_gen.go", content)
+	content = strings.ReplaceAll(content, "{{.routeCodeInfo}}", blankStr+""+consts.LineSep+pathMapCode+consts.LineSep+consts.LineSep+funcListCode)
 
-	time.Sleep(5 * time.Second)
+	file.WriteFile(filePath, content)
 
-	//initRouteInfo()
+	time.Sleep(3 * time.Second)
+
 	fmt.Println("Routing code regenerated, please restart ......")
 
 	os.Exit(0)
@@ -102,22 +96,22 @@ func genPathMapCode(buildRoutePathMap *map[string]map[string]map[string][]string
 
 	routeUrlMethodMapLines := make([]string, 0)
 
-	routeUrlMethodMapLines = append(routeUrlMethodMapLines, BlankStr+"routeUrlMethodMapTmp := make(map[string]map[string]map[string][]string)", consts.EmptyStr)
+	routeUrlMethodMapLines = append(routeUrlMethodMapLines, blankStr+"routeUrlMethodMapTmp := make(map[string]map[string]map[string][]string)", consts.EmptyStr)
 	for preUrl, preRouteMap := range *buildRoutePathMap {
-		routeUrlMethodMapLines = append(routeUrlMethodMapLines, BlankStr+"routeUrlMethodMapTmp[\""+preUrl+"\"] = make(map[string]map[string][]string)")
+		routeUrlMethodMapLines = append(routeUrlMethodMapLines, blankStr+"routeUrlMethodMapTmp[\""+preUrl+"\"] = make(map[string]map[string][]string)")
 
 		for route, methodMap := range preRouteMap {
-			routeUrlMethodMapLines = append(routeUrlMethodMapLines, BlankStr+"routeUrlMethodMapTmp[\""+preUrl+"\"][\""+route+"\"] = make(map[string][]string)")
+			routeUrlMethodMapLines = append(routeUrlMethodMapLines, blankStr+"routeUrlMethodMapTmp[\""+preUrl+"\"][\""+route+"\"] = make(map[string][]string)")
 			for method, handlerNames := range methodMap {
-				routeUrlMethodMapLines = append(routeUrlMethodMapLines, BlankStr+"routeUrlMethodMapTmp[\""+preUrl+"\"][\""+route+"\"][\""+method+"\"] = make([]string, "+strconv.Itoa(len(handlerNames))+")")
+				routeUrlMethodMapLines = append(routeUrlMethodMapLines, blankStr+"routeUrlMethodMapTmp[\""+preUrl+"\"][\""+route+"\"][\""+method+"\"] = make([]string, "+strconv.Itoa(len(handlerNames))+")")
 				for i, handlerName := range handlerNames {
-					routeUrlMethodMapLines = append(routeUrlMethodMapLines, BlankStr+"routeUrlMethodMapTmp[\""+preUrl+"\"][\""+route+"\"][\""+method+"\"]["+strconv.Itoa(i)+"] = \""+handlerName+"\"")
+					routeUrlMethodMapLines = append(routeUrlMethodMapLines, blankStr+"routeUrlMethodMapTmp[\""+preUrl+"\"][\""+route+"\"][\""+method+"\"]["+strconv.Itoa(i)+"] = \""+handlerName+"\"")
 				}
 			}
 		}
 		routeUrlMethodMapLines = append(routeUrlMethodMapLines, consts.EmptyStr)
 	}
-	routeUrlMethodMapLines = append(routeUrlMethodMapLines, BlankStr+"routeUrlMethodMap = routeUrlMethodMapTmp", consts.EmptyStr)
+	routeUrlMethodMapLines = append(routeUrlMethodMapLines, blankStr+"routeUrlMethodMap = routeUrlMethodMapTmp", consts.EmptyStr) // "+suffix+"
 	return strings.Join(routeUrlMethodMapLines, consts.LineSep)
 }
 
@@ -125,7 +119,7 @@ func genPathMapCode(buildRoutePathMap *map[string]map[string]map[string][]string
 func genHandlerFuncMapCode(buildRouteMethodMap *map[string]model.HandlerFuncInOut) string {
 
 	handlerFuncsCode := make([]string, 0)
-	handlerFuncsCode = append(handlerFuncsCode, BlankStr+"handlerFuncMapTmp := make(map[string]model.HandlerFuncInOut)", consts.EmptyStr)
+	handlerFuncsCode = append(handlerFuncsCode, blankStr+"handlerFuncMapTmp := make(map[string]model.HandlerFuncInOut)", consts.EmptyStr)
 
 	controllerNameMap := make(map[string]string)
 
@@ -160,30 +154,15 @@ func genHandlerFuncMapCode(buildRouteMethodMap *map[string]model.HandlerFuncInOu
 		code = strings.ReplaceAll(code, "{{.outParamsCount}}", strconv.Itoa(handlerFunc.OutCount))
 		code = strings.ReplaceAll(code, "{{.controllerNameMethod}}", controllerInstanceName+"."+handlerFunc.Name)
 
-		handlerFuncsCode = append(handlerFuncsCode, BlankStr+"handlerFuncMapTmp[\""+k+"\"] = "+code)
+		handlerFuncsCode = append(handlerFuncsCode, blankStr+"handlerFuncMapTmp[\""+k+"\"] = "+code)
 	}
 
 	controllerInstanceCode := make([]string, 0)
 	for k, v := range controllerNameMap {
-		controllerInstanceCode = append(controllerInstanceCode, BlankStr+k+" := &controller."+v+"{}")
+		controllerInstanceCode = append(controllerInstanceCode, blankStr+k+" := &controller."+v+"{}")
 	}
 
-	genCode := strings.Join(controllerInstanceCode, consts.LineSep) + consts.LineSep + strings.Join(handlerFuncsCode, consts.LineSep) + consts.LineSep + BlankStr + "handlerFuncMap = handlerFuncMapTmp"
+	genCode := strings.Join(controllerInstanceCode, consts.LineSep) + consts.LineSep + strings.Join(handlerFuncsCode, consts.LineSep) + consts.LineSep + blankStr + "handlerFuncMap = handlerFuncMapTmp" //" + suffix + "
 
 	return genCode
-}
-
-// saveGenCodeFile 保存生成code
-func saveGenCodeFile(fileName, content string) {
-	path := file.GetCurrentPath()
-
-	filePath := filepath.Join(path, fileName)
-	logger.Logger().Info("save route gen code file path: " + filePath)
-	f, err := os.Create(filePath)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	f.WriteString(content)
 }

@@ -18,8 +18,6 @@ const httpMethods = ",GET,POST,DELETE,PATCH,PUT,OPTIONS,HEAD,*,"
 var (
 	handlerFuncMap    map[string]model.HandlerFuncInOut
 	routeUrlMethodMap map[string]map[string]map[string][]string
-	routeCodeMd5      string
-	routeTempSign     string
 
 	groupRouteMap map[string]*gin.RouterGroup
 
@@ -45,7 +43,7 @@ func SetupRouter(engine *gin.Engine) {
 	//	utilGin.Json(200, "ok", nil)
 	//})
 
-	registerRoute(engine, &controller.UserController{})
+	registerRoute(engine, &controller.UserController{}, &controller.ProjectController{})
 
 	//engine.Any("/soc-go-boot-api/user/:create", controller.Create())
 }

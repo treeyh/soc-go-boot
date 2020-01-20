@@ -13,6 +13,7 @@ import (
 	"go/parser"
 	"go/token"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -21,9 +22,18 @@ import (
 	"unicode"
 )
 
+var (
+	// controllerStatusTmpFileName controller记录文件，判断是否要重新生成路由
+	controllerStatusTmpFileName = ".last_controller_status.tmp"
+)
+
 // buildRouteMap 本地环境根据Controller注释构建RouteMap
 func buildRouteMap(contrs ...controller.IController) {
 	if consts.GetCurrentEnv() != consts.EnvLocal {
+		return
+	}
+
+	if !checkControllerStatus() {
 		return
 	}
 
@@ -310,4 +320,55 @@ func readGoModModule(goModPath string) string {
 		return strings.TrimSpace(line)
 	}
 	return ""
+}
+
+// checkControllerStatus 获取controller文件状态
+func checkControllerStatus() bool {
+	t := false
+
+	path := file.GetCurrentPath()
+
+	filePath := filepath.Join(path, "..", "..", controllerStatusTmpFileName)
+	if !file.ExistFile(filePath) {
+		t = true
+	}
+
+	tmpContent, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		t = true
+	}
+	tmpJson := string(tmpContent)
+	tmpMap := make(map[string]int64)
+	json.FromJson(tmpJson, &tmpMap)
+
+	controllerPath := filepath.Join(path, "..", "controller")
+	files, err := file.GetDirSon(controllerPath)
+	if err != nil {
+		return true
+	}
+	for _, v := range files {
+		if v.IsDir() {
+			continue
+		}
+
+		if fi, ok := tmpMap[v.Name()]; ok {
+			if fi != v.ModTime().Unix() {
+				if strings.HasSuffix(v.Name(), "_controller.go") {
+					t = true
+					tmpMap[v.Name()] = v.ModTime().Unix()
+				}
+			}
+			continue
+		}
+
+		if strings.HasSuffix(v.Name(), "controller.go") {
+			t = true
+			tmpMap[v.Name()] = v.ModTime().Unix()
+		}
+	}
+
+	if t {
+		file.WriteFile(filePath, json.ToJsonIgnoreError(tmpMap))
+	}
+	return t
 }

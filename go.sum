@@ -144,6 +144,8 @@ github.com/tealeg/xlsx/v2 v2.0.1/go.mod h1:l9GvhCCjdaIGkAyZcFedDALcYcXUOei55f6um
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/treeyh/soc-go-common v0.0.0-20200109022814-ea01b30e68ab h1:nM002E3RBA/J9CG17LdZxEnxsFkPVvldM7R9iZbjfx8=
 github.com/treeyh/soc-go-common v0.0.0-20200109022814-ea01b30e68ab/go.mod h1:B78OKaX0cKPP76nkugyjRqvzoybwvS9DlpK4MNuGmC0=
+github.com/treeyh/soc-go-common v0.0.0-20200120095626-a88f7b969011 h1:SxY7rMD2VXtiXX7hF95G9+rnuUOxEjWQop+XmtvEmHw=
+github.com/treeyh/soc-go-common v0.0.0-20200120095626-a88f7b969011/go.mod h1:B78OKaX0cKPP76nkugyjRqvzoybwvS9DlpK4MNuGmC0=
 github.com/uber/jaeger-client-go v2.21.1+incompatible h1:oozboeZmWz+tyh3VZttJWlF3K73mHgbokieceqKccLo=
 github.com/uber/jaeger-client-go v2.21.1+incompatible/go.mod h1:WVhlPFC8FDjOFMMWRy2pZqQJSXxYSwNYOkTr/Z6d3Kk=
 github.com/uber/jaeger-lib v2.2.0+incompatible h1:MxZXOiR2JuoANZ3J6DE/U0kSFv/eJ/GfSYVCjK7dyaw=
