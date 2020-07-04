@@ -9,7 +9,7 @@ require (
 	github.com/go-playground/universal-translator v0.16.0
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/spf13/viper v1.6.1
-	github.com/treeyh/soc-go-common v0.0.0-20200120095626-a88f7b969011
+	github.com/treeyh/soc-go-common v0.0.0-20200629092921-2c0e1036634e
 	github.com/uber/jaeger-client-go v2.21.1+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	go.uber.org/zap v1.13.0

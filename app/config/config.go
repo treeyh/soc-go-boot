@@ -1,10 +1,8 @@
 package config
 
 import (
-	"fmt"
 	"github.com/spf13/viper"
 	socconfig "github.com/treeyh/soc-go-common/core/config"
-	"github.com/treeyh/soc-go-common/core/errors"
 )
 
 var conf = SocBootConfig{
@@ -51,21 +49,16 @@ func GetSocConfig() *SocConfig {
 	return conf.SocBoot
 }
 
-func LoadEnvConfig(dir string, config string, env string) errors.AppError {
-	err := loadConfig(dir, config, "")
-	if err != nil {
-		return err
-	}
+func LoadEnvConfig(dir string, config string, env string) {
+	loadConfig(dir, config, "")
+
 	if env != "" {
-		err = loadConfig(dir, config, env)
-		if err != nil {
-			return err
-		}
+		loadConfig(dir, config, env)
 	}
-	return nil
 }
 
-func loadConfig(dir string, config string, env string) errors.AppError {
+// loadConfig 加载配置
+func loadConfig(dir string, config string, env string) {
 	configName := config
 	if env != "" {
 		configName += "." + env
@@ -77,12 +70,9 @@ func loadConfig(dir string, config string, env string) errors.AppError {
 	conf.Viper.AddConfigPath(dir)
 	conf.Viper.SetConfigType("yml")
 	if err := conf.Viper.MergeInConfig(); err != nil {
-		fmt.Println(err)
-		return errors.NewAppErrorByExistError(errors.LoadConfigFileFail, err)
+		panic("Load config file fail. " + err.Error())
 	}
 	if err := conf.Viper.Unmarshal(&conf); err != nil {
-		fmt.Println(err)
-		return errors.NewAppErrorByExistError(errors.LoadConfigFileFail, err)
+		panic("Load config file fail. " + err.Error())
 	}
-	return nil
 }
