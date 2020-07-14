@@ -1,0 +1,62 @@
+SocBoot:
+  App:
+    Name: soc-go-boot-app
+    Server:
+      Port: 10100
+      ContextPath: soc-memory-api
+  DataSource:
+    master:
+      Type: mysql
+#      DBUrl: root:2Dv_v2VXnZ8PgG26f@(101.133.223.80:33309)/soc_memory_utest?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
+#      MaxIdleConns: 3
+#      MaxOpenConns: 3
+#      DBUrl: root:Mysql123@(127.0.0.1:3306)/soc_memory_utest?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
+      DBUrl: root:mysqldev@(192.168.1.101:3306)/soc_memory_utest?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
+      MaxIdleConns: 3
+      MaxOpenConns: 3
+
+  Trace:
+    Enable: false
+    Server: "127.0.0.1:6831"
+  Redis:
+    master:
+      Host: 192.168.1.101
+#      Host: 127.0.0.1
+      Port: 6379
+      Password: ""
+      Database: 11
+      MaxIdle: 10
+      MaxActive: 30
+      ConnectTimeout: 0
+      ReadTimeout: 0
+      WriteTimeout: 0
+  Logger:
+    default:
+      LogPath: ""
+      Level: info
+      IsSyncConsoleOut: true
+      FileSize: 1024
+      MaxBackups: 20
+      Tag: log
+    rr:
+      LogPath: ""
+      Level: info
+      IsSyncConsoleOut: true
+      FileSize: 1024
+      MaxBackups: 20
+      Tag: rr
+    job:
+      LogPath: ""
+      Level: info
+      IsSyncConsoleOut: true
+      FileSize: 1024
+      MaxBackups: 20
+      Tag: job
+  WeChat:
+    default:
+      Type: weapp
+      AppId: wx419a2e54798f89b9
+      AppSecret: 14b55a789ff553681d88d22f80101095
+      Host: https://api.weixin.qq.com
+
+
