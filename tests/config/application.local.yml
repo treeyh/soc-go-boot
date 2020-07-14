@@ -1,0 +1,39 @@
+SocBoot:
+  DataSource:
+    Master:
+      Type: mysql
+      DBUrl: root:2Dv_v2VXnZ8PgG26f@(101.133.223.80:33309)/soc_memory_local?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
+  Redis:
+    master:
+      Host: 192.168.1.101
+      Port: 6379
+      Password: ""
+      Database: 0
+      MaxIdle: 10
+      MaxActive: 30
+      ConnectTimeout: 0
+      ReadTimeout: 0
+      WriteTimeout: 0
+  Logger:
+    default:
+      LogPath: ""
+      Level: info
+      IsSyncConsoleOut: true
+      FileSize: 1024
+      MaxBackups: 20
+      Tag: log
+    rr:
+      LogPath: ""
+      Level: info
+      IsSyncConsoleOut: true
+      FileSize: 1024
+      MaxBackups: 20
+      Tag: rr
+    job:
+      LogPath: ""
+      Level: info
+      IsSyncConsoleOut: true
+      FileSize: 1024
+      MaxBackups: 20
+      Tag: job
+
