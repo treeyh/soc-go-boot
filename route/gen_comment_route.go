@@ -32,8 +32,8 @@ var (
 	routeRegex = regexp.MustCompile(`@Router\s+(\S+)(?:\s+\[(\S+)\])?`)
 )
 
-// buildRouteMap 本地环境根据Controller注释构建RouteMap
-func buildRouteMap(controllerStatusPath, controllerPath, goModFilePath, genPath string, contrs ...controller.IController) {
+// BuildRouteMap 本地环境根据Controller注释构建RouteMap
+func BuildRouteMap(controllerStatusPath, controllerPath, goModFilePath, genPath string, contrs ...controller.IController) {
 
 	if !checkControllerStatus(controllerStatusPath, controllerPath) {
 		return
