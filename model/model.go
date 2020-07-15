@@ -13,6 +13,14 @@ const (
 	HeaderAssign
 )
 
+type RouteContentType string
+
+const (
+	ContentTypeJson RouteContentType = "json"
+	ContentTypeText RouteContentType = "text"
+	ContentTypeXml  RouteContentType = "xml"
+)
+
 // InParamsType 输入参数类型定义
 type InParamsType struct {
 	Name       string               `json:"name"`
@@ -30,9 +38,11 @@ type ParamsType struct {
 }
 
 type RouteMethod struct {
-	PreUrl  string   `json:"preUrl"`
-	Route   string   `json:"route"`
-	Methods []string `json:"methods"`
+	PreUrl          string           `json:"preUrl"`
+	Route           string           `json:"route"`
+	Methods         []string         `json:"methods"`
+	ReqContentType  RouteContentType `json:"reqContentType"`
+	RespContentType RouteContentType `json:"respContentType"`
 }
 
 // HandlerFuncInOut handler方法输入输出参数定义

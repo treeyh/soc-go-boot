@@ -29,7 +29,8 @@ var (
 	controllerStatusTmpFileName = ".last_controller_status.tmp"
 	log                         = logger.Logger()
 
-	routeRegex = regexp.MustCompile(`@Router\s+(\S+)(?:\s+\[(\S+)\])?`)
+	// @Router /create    [post,get,delete]  xml  string  : Router标识     url后缀     [支持的http method，为空默认get]    请求body的数据格式，不填默认json       response的数据格式，不填默认json
+	routeRegex = regexp.MustCompile(`@Router\s+(\S+)(?:\s+\[(\S+)\])?(?:\s+(\S+))?(?:\s+(\S+))?`)
 )
 
 // BuildRouteMap 本地环境根据Controller注释构建RouteMap
@@ -143,7 +144,7 @@ func parseHandlerFunc(controllerName, preUrl string, specDecl *ast.FuncDecl) *mo
 		if strings.HasPrefix(t, "@Router") {
 			matches := routeRegex.FindStringSubmatch(t)
 			routeMethod := model.RouteMethod{}
-			if len(matches) != 3 {
+			if len(matches) != 5 {
 				panic(" @Route format does not to the rules. " + v.Text)
 			}
 
@@ -160,6 +161,10 @@ func parseHandlerFunc(controllerName, preUrl string, specDecl *ast.FuncDecl) *mo
 					}
 				}
 			}
+
+			routeMethod.ReqContentType = getRouteContentType(matches[3])
+			routeMethod.RespContentType = getRouteContentType(matches[4])
+
 			routeMethods = append(routeMethods, routeMethod)
 		}
 		if strings.HasPrefix(t, "@Param") {
@@ -237,6 +242,20 @@ func getParamAssignType(val string) model.HttpParamsAssignType {
 		return model.HeaderAssign
 	}
 	return model.UnAssign
+}
+
+// getRouteContentType 获取route的contentType参数
+func getRouteContentType(val string) model.RouteContentType {
+	switch strings.ToLower(val) {
+	case "json":
+		return model.ContentTypeJson
+	case "xml":
+		return model.ContentTypeXml
+	case "text":
+		return model.ContentTypeText
+	default:
+		return model.ContentTypeJson
+	}
 }
 
 // getParams 解析@Params备注

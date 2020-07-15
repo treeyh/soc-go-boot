@@ -20,6 +20,16 @@ import (
 	"github.com/treeyh/soc-go-boot/model"
 )
 
+var (
+
+	// routeUrlMethodMap 路由urlmap string:controller的preurl； string:suffixUrl后缀url ； string:method； []string: 匹配到的handlerFuncMap的key
+	routeUrlMethodMap map[string]map[string]map[string][]string
+
+	// handlerFuncMap string: routeUrlMethodMap指定的url, 
+	handlerFuncMap    map[string]model.HandlerFuncInOut
+
+)
+
 func init() {
 	{{.routeCodeInfo}}
 }
@@ -29,7 +39,9 @@ func init() {
 	handlerFuncMapTemplate = `model.HandlerFuncInOut{
 		ControllerName: "{{.controllerName}}",
 		Name:           "{{.methodName}}",
-		RouteMethods:   nil,
+		RouteMethods:   []model.RouteMethod{
+{{.routeMethods}}
+		},
 		Ins: []model.InParamsType{
 {{.inParamsCode}}
 		},
@@ -55,6 +67,18 @@ func init() {
 			},`
 
 	handlerFuncOutParamTemplate = `			{},`
+
+	handlerFuncRouteMethodsTemplate = `			{
+				PreUrl: "{{.preUrl}}",
+				Route: "{{.route}}",
+				Methods: []string{
+{{.methods}}
+				},
+				ReqContentType: {{.reqContentType}},
+				RespContentType: {{.respContentType}},
+			},`
+
+	StringSlice = `					"{{.str}}",`
 
 	blankStr = "    "
 
@@ -124,6 +148,16 @@ func genHandlerFuncMapCode(buildRouteMethodMap map[string]model.HandlerFuncInOut
 		controllerInstanceName := strs.LcFirst(handlerFunc.ControllerName)
 		controllerNameMap[controllerInstanceName] = handlerFunc.ControllerName
 
+		routeMethodsCode := make([]string, 0)
+		for _, routeMethod := range handlerFunc.RouteMethods {
+			code := strings.ReplaceAll(handlerFuncRouteMethodsTemplate, "{{.preUrl}}", routeMethod.PreUrl)
+			code = strings.ReplaceAll(code, "{{.route}}", routeMethod.Route)
+			code = strings.ReplaceAll(code, "{{.methods}}", getStringByStringSlice(routeMethod.Methods))
+			code = strings.ReplaceAll(code, "{{.reqContentType}}", getRouteContentTypeString(routeMethod.ReqContentType))
+			code = strings.ReplaceAll(code, "{{.respContentType}}", getRouteContentTypeString(routeMethod.RespContentType))
+			routeMethodsCode = append(routeMethodsCode, code)
+		}
+
 		inParamsCode := make([]string, 0)
 
 		for _, inParam := range handlerFunc.Ins {
@@ -144,6 +178,7 @@ func genHandlerFuncMapCode(buildRouteMethodMap map[string]model.HandlerFuncInOut
 
 		code := strings.ReplaceAll(handlerFuncMapTemplate, "{{.controllerName}}", handlerFunc.ControllerName)
 		code = strings.ReplaceAll(code, "{{.methodName}}", handlerFunc.Name)
+		code = strings.ReplaceAll(code, "{{.routeMethods}}", strings.Join(routeMethodsCode, consts.LineSep))
 		code = strings.ReplaceAll(code, "{{.inParamsCode}}", strings.Join(inParamsCode, consts.LineSep))
 		code = strings.ReplaceAll(code, "{{.inParamsCount}}", strconv.Itoa(handlerFunc.InCount))
 		code = strings.ReplaceAll(code, "{{.outParamsCode}}", strings.Join(onParamsCode, consts.LineSep))
@@ -161,4 +196,25 @@ func genHandlerFuncMapCode(buildRouteMethodMap map[string]model.HandlerFuncInOut
 	genCode := strings.Join(controllerInstanceCode, consts.LineSep) + consts.LineSep + strings.Join(handlerFuncsCode, consts.LineSep) + consts.LineSep + blankStr + "handlerFuncMap = handlerFuncMapTmp" //" + suffix + "
 
 	return genCode
+}
+
+// getRouteContentTypeString 构造routeContentType字符串
+func getRouteContentTypeString(contentType model.RouteContentType) string {
+	switch contentType {
+	case model.ContentTypeJson:
+		return "model.ContentTypeJson"
+	case model.ContentTypeText:
+		return "model.ContentTypeText"
+	default:
+		return "model.ContentTypeXml"
+	}
+}
+
+// getStrings 构造字符串数组字符串
+func getStringByStringSlice(strs []string) string {
+	strss := make([]string, 0)
+	for _, v := range strs {
+		strss = append(strss, strings.ReplaceAll(StringSlice, "{{.str}}", v))
+	}
+	return strings.Join(strss, consts.LineSep)
 }

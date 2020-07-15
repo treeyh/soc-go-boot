@@ -34,6 +34,10 @@ func JsonHttpRespResult(g *req.GinContext, resp *resp.HttpRespResult) {
 	g.Ctx.JSON(resp.HttpStatus, resp.RespResult)
 }
 
+func StringHttpRespResult(g *req.GinContext, httpStatus int, msg string, values ...interface{}) {
+	g.Ctx.String(httpStatus, msg, values)
+}
+
 func OkHttpRespResultByData(data ...interface{}) *resp.HttpRespResult {
 	result := &resp.HttpRespResult{
 		RespResult: resp.RespResult{
