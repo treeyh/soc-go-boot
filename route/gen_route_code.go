@@ -66,8 +66,6 @@ func genRouterCode(genPath, moduleName string, buildRouteMethodMap map[string]mo
 
 	filePath := filepath.Join(genPath, genFileName)
 
-	handlerFuncMap = nil
-	routeUrlMethodMap = nil
 	if file.ExistFile(filePath) {
 		os.Remove(filePath)
 	}

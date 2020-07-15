@@ -14,6 +14,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -28,15 +29,13 @@ var (
 	controllerStatusTmpFileName = ".last_controller_status.tmp"
 	log                         = logger.Logger()
 
-	handlerFuncMap    map[string]model.HandlerFuncInOut
-	routeUrlMethodMap map[string]map[string]map[string][]string
-	routeRegex        = regexp.MustCompile(`@Router\s+(\S+)(?:\s+\[(\S+)\])?`)
+	routeRegex = regexp.MustCompile(`@Router\s+(\S+)(?:\s+\[(\S+)\])?`)
 )
 
 // buildRouteMap 本地环境根据Controller注释构建RouteMap
-func buildRouteMap(controllerStatusFilePath, controllerPath, goModFilePath, genPath string, contrs ...controller.IController) {
+func buildRouteMap(controllerStatusPath, controllerPath, goModFilePath, genPath string, contrs ...controller.IController) {
 
-	if !checkControllerStatus(controllerStatusFilePath, controllerPath) {
+	if !checkControllerStatus(controllerStatusPath, controllerPath) {
 		return
 	}
 
@@ -321,8 +320,10 @@ func readGoModModule(goModPath string) string {
 }
 
 // checkControllerStatus 获取controller文件状态
-func checkControllerStatus(controllerStatusFilePath, controllerPath string) bool {
+func checkControllerStatus(controllerStatusPath, controllerPath string) bool {
 	t := false
+
+	controllerStatusFilePath := filepath.Join(controllerStatusPath, controllerStatusTmpFileName)
 	if !file.ExistFile(controllerStatusFilePath) {
 		t = true
 	}

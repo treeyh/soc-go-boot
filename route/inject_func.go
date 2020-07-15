@@ -112,7 +112,7 @@ func init() {
 	//}
 }
 
-func injectFunc(ctx *socreq.GinContext, handlerFunc model.HandlerFuncInOut) ([]reflect.Value, errors.AppError) {
+func InjectFunc(ctx *socreq.GinContext, handlerFunc model.HandlerFuncInOut) ([]reflect.Value, errors.AppError) {
 	inputValues := make([]reflect.Value, handlerFunc.InCount)
 	if handlerFunc.InCount > 0 {
 		for i, inParam := range handlerFunc.Ins {
