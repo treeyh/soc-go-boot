@@ -84,17 +84,28 @@ func FileHttpRespResult(g *req.GinContext, resp *resp.HttpFileRespResult) {
 }
 
 func OkHttpRespResultByData(data ...interface{}) *resp.HttpJsonRespResult {
-	result := &resp.HttpJsonRespResult{
-		Data: resp.RespResult{
-			Code:      errors.OK.Code(),
-			Message:   errors.OK.Message(),
-			Timestamp: time.Now().Unix(),
-		},
-		HttpStatus: 200,
-	}
+	var result *resp.HttpJsonRespResult
 	if len(data) > 0 {
-		result.Data = data[0]
+		result = &resp.HttpJsonRespResult{
+			Data: resp.RespResult{
+				Code:      errors.OK.Code(),
+				Message:   errors.OK.Message(),
+				Timestamp: time.Now().Unix(),
+				Data:      data[0],
+			},
+			HttpStatus: 200,
+		}
+	} else {
+		result = &resp.HttpJsonRespResult{
+			Data: resp.RespResult{
+				Code:      errors.OK.Code(),
+				Message:   errors.OK.Message(),
+				Timestamp: time.Now().Unix(),
+			},
+			HttpStatus: 200,
+		}
 	}
+
 	return result
 }
 
