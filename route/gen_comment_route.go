@@ -29,7 +29,9 @@ var (
 	controllerStatusTmpFileName = ".last_controller_status.tmp"
 	log                         = logger.Logger()
 
-	// @Router /create    [post,get,delete]  xml  string  : Router标识     url后缀     [支持的http method，为空默认get]    请求body的数据格式，不填默认json       response的数据格式，不填默认json
+	// @Router /create    [post,get,delete]  xml  string
+	//    Router标识     url后缀     [支持的http method，为空默认get]   请求body的数据格式，支持：json/text/xml，不填默认json    response的数据格式，支持：json/text/xml/protobuf/file/html/redirect，不填默认json
+	// 同一个 controller方法 如果有多个 @Router 那么 reqest和response的类型必须相同
 	routeRegex = regexp.MustCompile(`@Router\s+(\S+)(?:\s+\[(\S+)\])?(?:\s+(\S+))?(?:\s+(\S+))?`)
 )
 
@@ -157,20 +159,27 @@ func parseHandlerFunc(controllerName, preUrl string, specDecl *ast.FuncDecl) *mo
 				routeMethod.Methods = strings.Split(methods, ",")
 				for _, httpMethod := range routeMethod.Methods {
 					if !strings.Contains(httpMethods, ","+httpMethod+",") {
-						panic(" @Route http method format does not to the rules. " + httpMethod)
+						panic(" @Route http method format does not to the rules. " + httpMethod + ". controllerName:" + controllerName + ". preUrl:" + preUrl)
 					}
 				}
 			}
 
-			routeMethod.ReqContentType = getRouteContentType(matches[3])
-			routeMethod.RespContentType = getRouteContentType(matches[4])
+			routeMethod.ReqContentType = getRouteReqContentType(matches[3])
+			routeMethod.RespContentType = getRouteRespContentType(matches[4])
+
+			// 判断一个方法的多个router的reqest和response类型是否相同
+			if len(routeMethods) > 0 {
+				if routeMethods[0].ReqContentType != routeMethod.ReqContentType || routeMethods[0].RespContentType != routeMethod.RespContentType {
+					panic(" multiple @Route request and response type difference . " + ". controllerName:" + controllerName + ". preUrl:" + preUrl)
+				}
+			}
 
 			routeMethods = append(routeMethods, routeMethod)
 		}
 		if strings.HasPrefix(t, "@Param") {
 			pv := getParams(strings.TrimSpace(strings.TrimLeft(t, "@Param")))
 			if len(pv) < 4 {
-				logger.Logger().Error("Invalid @Param format. Needs at least 4 parameters")
+				log.Error("Invalid @Param format. Needs at least 4 parameters")
 			}
 			param := model.InParamsType{}
 			param.Name = pv[0]
@@ -244,17 +253,43 @@ func getParamAssignType(val string) model.HttpParamsAssignType {
 	return model.UnAssign
 }
 
-// getRouteContentType 获取route的contentType参数
-func getRouteContentType(val string) model.RouteContentType {
+// getRouteReqContentType 获取route request的contentType参数
+func getRouteReqContentType(val string) model.RouteReqContentType {
 	switch strings.ToLower(val) {
 	case "json":
-		return model.ContentTypeJson
+		return model.ReqContentTypeJson
 	case "xml":
-		return model.ContentTypeXml
+		return model.ReqContentTypeXml
 	case "text":
-		return model.ContentTypeText
+		return model.ReqContentTypeText
+	case "protobuf":
+		return model.ReqContentTypeProtoBuf
+	case "file":
+		return model.ReqContentTypeFile
 	default:
-		return model.ContentTypeJson
+		return model.ReqContentTypeJson
+	}
+}
+
+// getRouteRespContentType 获取route respose 的contentType参数
+func getRouteRespContentType(val string) model.RouteRespContentType {
+	switch strings.ToLower(val) {
+	case "json":
+		return model.RespContentTypeJson
+	case "xml":
+		return model.RespContentTypeXml
+	case "text":
+		return model.RespContentTypeText
+	case "protobuf":
+		return model.RespContentTypeProtoBuf
+	case "file":
+		return model.RespContentTypeFile
+	case "html":
+		return model.RespContentTypeHtml
+	case "redirect":
+		return model.RespContentTypeRedirect
+	default:
+		return model.RespContentTypeJson
 	}
 }
 

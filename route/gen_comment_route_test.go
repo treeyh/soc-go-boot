@@ -2,6 +2,7 @@ package route
 
 import (
 	"fmt"
+	"github.com/treeyh/soc-go-boot/model"
 	"regexp"
 	"testing"
 )
@@ -28,4 +29,17 @@ func TestRouteRegexFindStringSubmatch(t *testing.T) {
 	for k, v := range matches {
 		fmt.Println(k, v)
 	}
+
+	var test model.RouteReqContentType
+	fmt.Println("===")
+	fmt.Println(test)
+
+	test = model.ReqContentTypeFile
+	fmt.Println("===")
+	fmt.Println(test)
+
+	test = ""
+	fmt.Println("===")
+	fmt.Println(test)
+
 }

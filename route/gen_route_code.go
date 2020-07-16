@@ -153,8 +153,8 @@ func genHandlerFuncMapCode(buildRouteMethodMap map[string]model.HandlerFuncInOut
 			code := strings.ReplaceAll(handlerFuncRouteMethodsTemplate, "{{.preUrl}}", routeMethod.PreUrl)
 			code = strings.ReplaceAll(code, "{{.route}}", routeMethod.Route)
 			code = strings.ReplaceAll(code, "{{.methods}}", getStringByStringSlice(routeMethod.Methods))
-			code = strings.ReplaceAll(code, "{{.reqContentType}}", getRouteContentTypeString(routeMethod.ReqContentType))
-			code = strings.ReplaceAll(code, "{{.respContentType}}", getRouteContentTypeString(routeMethod.RespContentType))
+			code = strings.ReplaceAll(code, "{{.reqContentType}}", getRouteReqContentTypeString(routeMethod.ReqContentType))
+			code = strings.ReplaceAll(code, "{{.respContentType}}", getRouteRespContentTypeString(routeMethod.RespContentType))
 			routeMethodsCode = append(routeMethodsCode, code)
 		}
 
@@ -198,15 +198,39 @@ func genHandlerFuncMapCode(buildRouteMethodMap map[string]model.HandlerFuncInOut
 	return genCode
 }
 
-// getRouteContentTypeString 构造routeContentType字符串
-func getRouteContentTypeString(contentType model.RouteContentType) string {
+// getRouteReqContentTypeString 构造routeReqContentType字符串
+func getRouteReqContentTypeString(contentType model.RouteReqContentType) string {
 	switch contentType {
-	case model.ContentTypeJson:
-		return "model.ContentTypeJson"
-	case model.ContentTypeText:
-		return "model.ContentTypeText"
+	case model.ReqContentTypeJson:
+		return "model.ReqContentTypeJson"
+	case model.ReqContentTypeText:
+		return "model.ReqContentTypeText"
+	case model.ReqContentTypeProtoBuf:
+		return "model.ReqContentTypeProtoBuf"
+	case model.ReqContentTypeFile:
+		return "model.ReqContentTypeFile"
 	default:
-		return "model.ContentTypeXml"
+		return "model.ReqContentTypeXml"
+	}
+}
+
+// getRouteRespContentTypeString 构造routeRespContentType字符串
+func getRouteRespContentTypeString(contentType model.RouteRespContentType) string {
+	switch contentType {
+	case model.RespContentTypeJson:
+		return "model.RespContentTypeJson"
+	case model.RespContentTypeText:
+		return "model.RespContentTypeText"
+	case model.RespContentTypeProtoBuf:
+		return "model.RespContentTypeProtoBuf"
+	case model.RespContentTypeFile:
+		return "model.RespContentTypeFile"
+	case model.RespContentTypeHtml:
+		return "model.RespContentTypeHtml"
+	case model.RespContentTypeRedirect:
+		return "model.RespContentTypeRedirect"
+	default:
+		return "model.RespContentTypeXml"
 	}
 }
 

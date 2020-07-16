@@ -5,6 +5,7 @@ import (
 	"github.com/treeyh/soc-go-boot/model/resp"
 	"github.com/treeyh/soc-go-common/core/errors"
 	"github.com/treeyh/soc-go-common/core/logger"
+	"path/filepath"
 	"time"
 )
 
@@ -36,6 +37,25 @@ func JsonHttpRespResult(g *req.GinContext, resp *resp.HttpRespResult) {
 
 func StringHttpRespResult(g *req.GinContext, httpStatus int, msg string, values ...interface{}) {
 	g.Ctx.String(httpStatus, msg, values)
+}
+
+func HtmlHttpRespResult(g *req.GinContext, httpStatus int, msg string, value interface{}) {
+	g.Ctx.HTML(httpStatus, msg, value)
+}
+
+func ProtoBufHttpRespResult(g *req.GinContext, httpStatus int, value interface{}) {
+	g.Ctx.ProtoBuf(httpStatus, value)
+}
+
+func RedirectHttpRespResult(g *req.GinContext, httpStatus int, location string) {
+	g.Ctx.Redirect(httpStatus, location)
+}
+
+func FileHttpRespResult(g *req.GinContext, httpStatus int, filePath, fileName string) {
+	if fileName == "" {
+		fileName = filepath.Base(filePath)
+	}
+	g.Ctx.FileAttachment(filePath, fileName)
 }
 
 func OkHttpRespResultByData(data ...interface{}) *resp.HttpRespResult {

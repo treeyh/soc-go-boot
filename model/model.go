@@ -13,12 +13,23 @@ const (
 	HeaderAssign
 )
 
-type RouteContentType string
+type RouteReqContentType string
+type RouteRespContentType string
 
 const (
-	ContentTypeJson RouteContentType = "json"
-	ContentTypeText RouteContentType = "text"
-	ContentTypeXml  RouteContentType = "xml"
+	ReqContentTypeJson     RouteReqContentType = "json"
+	ReqContentTypeText     RouteReqContentType = "text"
+	ReqContentTypeXml      RouteReqContentType = "xml"
+	ReqContentTypeProtoBuf RouteReqContentType = "protobuf"
+	ReqContentTypeFile     RouteReqContentType = "file"
+
+	RespContentTypeJson     RouteRespContentType = "json"
+	RespContentTypeText     RouteRespContentType = "text"
+	RespContentTypeXml      RouteRespContentType = "xml"
+	RespContentTypeProtoBuf RouteRespContentType = "protobuf"
+	RespContentTypeFile     RouteRespContentType = "file"
+	RespContentTypeHtml     RouteRespContentType = "html"
+	RespContentTypeRedirect RouteRespContentType = "redirect"
 )
 
 // InParamsType 输入参数类型定义
@@ -38,11 +49,11 @@ type ParamsType struct {
 }
 
 type RouteMethod struct {
-	PreUrl          string           `json:"preUrl"`
-	Route           string           `json:"route"`
-	Methods         []string         `json:"methods"`
-	ReqContentType  RouteContentType `json:"reqContentType"`
-	RespContentType RouteContentType `json:"respContentType"`
+	PreUrl          string               `json:"preUrl"`
+	Route           string               `json:"route"`
+	Methods         []string             `json:"methods"`
+	ReqContentType  RouteReqContentType  `json:"reqContentType"`
+	RespContentType RouteRespContentType `json:"respContentType"`
 }
 
 // HandlerFuncInOut handler方法输入输出参数定义
