@@ -134,7 +134,7 @@ func buildHandler(method, preUrl, suffixUrl string, handlerFuncs []model.Handler
 		}
 		handlerFunc.InCount = maxIndex + 1
 
-		handlers = append(handlers, httpHandler(method, preUrl, suffixUrl, handlerFunc))
+		handlers = append(handlers, httpHandler(method, preUrl, suffixUrl, &handlerFunc))
 	}
 	return handlers
 }
@@ -181,7 +181,7 @@ func checkParamExistUrl(urlPaths []string, param string) bool {
 	return false
 }
 
-func httpHandler(method, preUrl, suffixUrl string, handlerFunc model.HandlerFuncInOut) gin.HandlerFunc {
+func httpHandler(method, preUrl, suffixUrl string, handlerFunc *model.HandlerFuncInOut) gin.HandlerFunc {
 
 	log.Info("Handler path: " + method + " " + preUrl + suffixUrl + "      -->      " + handlerFunc.ControllerName + "." + handlerFunc.Name)
 

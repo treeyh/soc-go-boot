@@ -112,7 +112,7 @@ func init() {
 	//}
 }
 
-func InjectFunc(ctx *socreq.GinContext, handlerFunc model.HandlerFuncInOut) ([]reflect.Value, errors.AppError) {
+func InjectFunc(ctx *socreq.GinContext, handlerFunc *model.HandlerFuncInOut) ([]reflect.Value, errors.AppError) {
 	inputValues := make([]reflect.Value, handlerFunc.InCount)
 	reqContentType := handlerFunc.RouteMethods[0].ReqContentType
 
