@@ -35,7 +35,7 @@ func JsonHttpRespResult(g *req.GinContext, resp *resp.HttpJsonRespResult) {
 	if resp.HttpStatus == 0 {
 		resp.HttpStatus = 200
 	}
-	g.Ctx.JSON(resp.HttpStatus, resp.RespResult)
+	g.Ctx.JSON(resp.HttpStatus, resp.Data)
 }
 
 func TextHttpRespResult(g *req.GinContext, resp *resp.HttpTextRespResult) {
@@ -85,7 +85,7 @@ func FileHttpRespResult(g *req.GinContext, resp *resp.HttpFileRespResult) {
 
 func OkHttpRespResultByData(data ...interface{}) *resp.HttpJsonRespResult {
 	result := &resp.HttpJsonRespResult{
-		RespResult: resp.RespResult{
+		Data: resp.RespResult{
 			Code:      errors.OK.Code(),
 			Message:   errors.OK.Message(),
 			Timestamp: time.Now().Unix(),
@@ -100,7 +100,7 @@ func OkHttpRespResultByData(data ...interface{}) *resp.HttpJsonRespResult {
 
 func HttpRespResult(respResult *resp.RespResult) *resp.HttpJsonRespResult {
 	return &resp.HttpJsonRespResult{
-		RespResult: *respResult,
+		Data:       *respResult,
 		HttpStatus: 200,
 	}
 }

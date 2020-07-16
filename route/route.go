@@ -204,7 +204,7 @@ func responseJson(ctx *socreq.GinContext, results []reflect.Value, err errors.Ap
 		log.ErrorCtx(ctx.Ctx.Request.Context(), err)
 		respObj = &resp.HttpJsonRespResult{
 			HttpStatus: 500,
-			RespResult: resp.RespResult{
+			Data: resp.RespResult{
 				Code:      err.Code(),
 				Message:   err.Message(),
 				Timestamp: time.Now().Unix(),

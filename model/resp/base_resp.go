@@ -13,7 +13,7 @@ type RespResult struct {
 }
 
 type HttpJsonRespResult struct {
-	RespResult
+	Data interface{}
 
 	HttpStatus int
 }
@@ -26,7 +26,7 @@ type HttpTextRespResult struct {
 }
 
 type HttpProtoBufRespResult struct {
-	RespResult
+	Data interface{}
 
 	HttpStatus int
 }
