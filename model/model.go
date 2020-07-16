@@ -18,7 +18,6 @@ type RouteRespContentType string
 
 const (
 	ReqContentTypeJson     RouteReqContentType = "json"
-	ReqContentTypeText     RouteReqContentType = "text"
 	ReqContentTypeXml      RouteReqContentType = "xml"
 	ReqContentTypeProtoBuf RouteReqContentType = "protobuf"
 	ReqContentTypeFile     RouteReqContentType = "file"

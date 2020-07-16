@@ -260,8 +260,6 @@ func getRouteReqContentType(val string) model.RouteReqContentType {
 		return model.ReqContentTypeJson
 	case "xml":
 		return model.ReqContentTypeXml
-	case "text":
-		return model.ReqContentTypeText
 	case "protobuf":
 		return model.ReqContentTypeProtoBuf
 	case "file":

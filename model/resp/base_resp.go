@@ -6,16 +6,55 @@ import (
 )
 
 type RespResult struct {
-	Code      int         `json:"code"`
-	Message   string      `json:"message"`
-	Data      interface{} `json:"data"`
-	Timestamp int64       `json:"timestamp"`
+	Code      int         `json:"code" xml:"code"`
+	Message   string      `json:"message" xml:"message"`
+	Data      interface{} `json:"data" xml:"data"`
+	Timestamp int64       `json:"timestamp" xml:"timestamp"`
 }
 
-type HttpRespResult struct {
+type HttpJsonRespResult struct {
 	RespResult
 
-	HttpStatus int `json:"httpStatus"`
+	HttpStatus int
+}
+
+type HttpTextRespResult struct {
+	Format string
+	Values interface{}
+
+	HttpStatus int
+}
+
+type HttpProtoBufRespResult struct {
+	RespResult
+
+	HttpStatus int
+}
+
+type HttpXmlRespResult struct {
+	Data interface{}
+
+	HttpStatus int
+}
+
+type HttpFileRespResult struct {
+	FilePath string
+	FileName string
+
+	HttpStatus int
+}
+
+type HttpHtmlRespResult struct {
+	Name string
+	Data interface{}
+
+	HttpStatus int
+}
+
+type HttpRedirectRespResult struct {
+	Location string
+
+	HttpStatus int
 }
 
 type PageRespResult struct {

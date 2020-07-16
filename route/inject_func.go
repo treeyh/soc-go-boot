@@ -114,6 +114,8 @@ func init() {
 
 func InjectFunc(ctx *socreq.GinContext, handlerFunc model.HandlerFuncInOut) ([]reflect.Value, errors.AppError) {
 	inputValues := make([]reflect.Value, handlerFunc.InCount)
+	reqContentType := handlerFunc.RouteMethods[0].ReqContentType
+
 	if handlerFunc.InCount > 0 {
 		for i, inParam := range handlerFunc.Ins {
 			if i == 0 {
@@ -130,7 +132,7 @@ func InjectFunc(ctx *socreq.GinContext, handlerFunc model.HandlerFuncInOut) ([]r
 			}
 
 			if inParam.AssignType == model.BodyAssign {
-				val, err := parseBody(ctx.Ctx, &inParam)
+				val, err := parseBody(ctx.Ctx, &inParam, reqContentType)
 				if err != nil {
 					logger.Logger().Error(err)
 					return nil, err
@@ -222,10 +224,10 @@ func getParamString(ctx *gin.Context, inParam *model.InParamsType) string {
 	return ""
 }
 
-func parseBody(ctx *gin.Context, inParam *model.InParamsType) (*reflect.Value, errors.AppError) {
+func parseBody(ctx *gin.Context, inParam *model.InParamsType, reqContentType model.RouteReqContentType) (*reflect.Value, errors.AppError) {
 	newStrut := reflect.New(inParam.Type)
 	targetInterface := newStrut.Interface()
-	err := ctx.ShouldBindBodyWith(&targetInterface, binding.JSON)
+	err := ctx.ShouldBindBodyWith(&targetInterface, parseBodyContentType(reqContentType))
 	if err != nil {
 		logger.Logger().Error(err)
 		return nil, errors.NewAppErrorByExistError(consts_error.ParseParamError, err, inParam.Name)
@@ -234,6 +236,20 @@ func parseBody(ctx *gin.Context, inParam *model.InParamsType) (*reflect.Value, e
 		newStrut = newStrut.Elem()
 	}
 	return &newStrut, nil
+}
+
+// parseBodyContentType 转换binding.BindingBody
+func parseBodyContentType(reqContentType model.RouteReqContentType) binding.BindingBody {
+	switch reqContentType {
+	case model.ReqContentTypeJson:
+		return binding.JSON
+	case model.ReqContentTypeXml:
+		return binding.XML
+	case model.ReqContentTypeProtoBuf:
+		return binding.ProtoBuf
+	default:
+		return binding.JSON
+	}
 }
 
 //

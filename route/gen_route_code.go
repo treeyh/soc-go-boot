@@ -203,8 +203,6 @@ func getRouteReqContentTypeString(contentType model.RouteReqContentType) string 
 	switch contentType {
 	case model.ReqContentTypeJson:
 		return "model.ReqContentTypeJson"
-	case model.ReqContentTypeText:
-		return "model.ReqContentTypeText"
 	case model.ReqContentTypeProtoBuf:
 		return "model.ReqContentTypeProtoBuf"
 	case model.ReqContentTypeFile:

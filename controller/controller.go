@@ -31,35 +31,60 @@ func JsonRespResult(g *req.GinContext, resp *resp.RespResult) {
 	g.Ctx.JSON(200, resp)
 }
 
-func JsonHttpRespResult(g *req.GinContext, resp *resp.HttpRespResult) {
+func JsonHttpRespResult(g *req.GinContext, resp *resp.HttpJsonRespResult) {
+	if resp.HttpStatus == 0 {
+		resp.HttpStatus = 200
+	}
 	g.Ctx.JSON(resp.HttpStatus, resp.RespResult)
 }
 
-func StringHttpRespResult(g *req.GinContext, httpStatus int, msg string, values ...interface{}) {
-	g.Ctx.String(httpStatus, msg, values)
-}
-
-func HtmlHttpRespResult(g *req.GinContext, httpStatus int, msg string, value interface{}) {
-	g.Ctx.HTML(httpStatus, msg, value)
-}
-
-func ProtoBufHttpRespResult(g *req.GinContext, httpStatus int, value interface{}) {
-	g.Ctx.ProtoBuf(httpStatus, value)
-}
-
-func RedirectHttpRespResult(g *req.GinContext, httpStatus int, location string) {
-	g.Ctx.Redirect(httpStatus, location)
-}
-
-func FileHttpRespResult(g *req.GinContext, httpStatus int, filePath, fileName string) {
-	if fileName == "" {
-		fileName = filepath.Base(filePath)
+func TextHttpRespResult(g *req.GinContext, resp *resp.HttpTextRespResult) {
+	if resp.HttpStatus == 0 {
+		resp.HttpStatus = 200
 	}
-	g.Ctx.FileAttachment(filePath, fileName)
+	g.Ctx.String(resp.HttpStatus, resp.Format, resp.Values)
 }
 
-func OkHttpRespResultByData(data ...interface{}) *resp.HttpRespResult {
-	result := &resp.HttpRespResult{
+func HtmlHttpRespResult(g *req.GinContext, resp *resp.HttpHtmlRespResult) {
+	if resp.HttpStatus == 0 {
+		resp.HttpStatus = 200
+	}
+	g.Ctx.HTML(resp.HttpStatus, resp.Name, resp.Data)
+}
+
+func XmlHttpRespResult(g *req.GinContext, resp *resp.HttpXmlRespResult) {
+	if resp.HttpStatus == 0 {
+		resp.HttpStatus = 200
+	}
+	g.Ctx.XML(resp.HttpStatus, resp.Data)
+}
+
+func ProtoBufHttpRespResult(g *req.GinContext, resp *resp.HttpProtoBufRespResult) {
+	if resp.HttpStatus == 0 {
+		resp.HttpStatus = 200
+	}
+	g.Ctx.ProtoBuf(resp.HttpStatus, resp.Data)
+}
+
+func RedirectHttpRespResult(g *req.GinContext, resp *resp.HttpRedirectRespResult) {
+	if resp.HttpStatus == 0 {
+		resp.HttpStatus = 302
+	}
+	g.Ctx.Redirect(resp.HttpStatus, resp.Location)
+}
+
+func FileHttpRespResult(g *req.GinContext, resp *resp.HttpFileRespResult) {
+	if resp.HttpStatus == 0 {
+		resp.HttpStatus = 200
+	}
+	if resp.FileName == "" {
+		resp.FileName = filepath.Base(resp.FilePath)
+	}
+	g.Ctx.FileAttachment(resp.FilePath, resp.FileName)
+}
+
+func OkHttpRespResultByData(data ...interface{}) *resp.HttpJsonRespResult {
+	result := &resp.HttpJsonRespResult{
 		RespResult: resp.RespResult{
 			Code:      errors.OK.Code(),
 			Message:   errors.OK.Message(),
@@ -73,16 +98,9 @@ func OkHttpRespResultByData(data ...interface{}) *resp.HttpRespResult {
 	return result
 }
 
-func HttpRespResult(respResult *resp.RespResult) *resp.HttpRespResult {
-	return &resp.HttpRespResult{
+func HttpRespResult(respResult *resp.RespResult) *resp.HttpJsonRespResult {
+	return &resp.HttpJsonRespResult{
 		RespResult: *respResult,
 		HttpStatus: 200,
-	}
-}
-
-func HttpRespResultHttpStatue(httpStatus int, respResult *resp.RespResult) *resp.HttpRespResult {
-	return &resp.HttpRespResult{
-		RespResult: *respResult,
-		HttpStatus: httpStatus,
 	}
 }

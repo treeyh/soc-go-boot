@@ -2,19 +2,45 @@ package route
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/treeyh/soc-go-boot/common/consts/consts_error"
 	"github.com/treeyh/soc-go-boot/config"
 	"github.com/treeyh/soc-go-boot/controller"
 	"github.com/treeyh/soc-go-boot/model"
 	socreq "github.com/treeyh/soc-go-boot/model/req"
 	"github.com/treeyh/soc-go-boot/model/resp"
 	"github.com/treeyh/soc-go-common/core/consts"
+	"github.com/treeyh/soc-go-common/core/errors"
 	"reflect"
 	"strings"
+	"time"
 )
 
 var (
 	groupRouteMap map[string]*gin.RouterGroup
+
+	checkOutParamMsgMap = make(map[model.RouteRespContentType]string)
+
+	responseFuncMap = make(map[model.RouteRespContentType]func(*socreq.GinContext, []reflect.Value, errors.AppError))
 )
+
+func init() {
+
+	checkOutParamMsgMap[model.RespContentTypeFile] = "resp.HttpFileRespResult"
+	checkOutParamMsgMap[model.RespContentTypeHtml] = "resp.HttpHtmlRespResult"
+	checkOutParamMsgMap[model.RespContentTypeRedirect] = "resp.HttpRedirectRespResult"
+	checkOutParamMsgMap[model.RespContentTypeXml] = "resp.HttpXmlRespResult"
+	checkOutParamMsgMap[model.RespContentTypeJson] = "resp.HttpJsonRespResult"
+	checkOutParamMsgMap[model.RespContentTypeProtoBuf] = "resp.HttpProtoBufRespResult"
+	checkOutParamMsgMap[model.RespContentTypeText] = "resp.HttpTextRespResult"
+
+	responseFuncMap[model.RespContentTypeFile] = responseFile
+	responseFuncMap[model.RespContentTypeHtml] = responseHtml
+	responseFuncMap[model.RespContentTypeRedirect] = responseRedirect
+	responseFuncMap[model.RespContentTypeXml] = responseXml
+	responseFuncMap[model.RespContentTypeJson] = responseJson
+	responseFuncMap[model.RespContentTypeProtoBuf] = responseProtoBuf
+	responseFuncMap[model.RespContentTypeText] = responseText
+}
 
 func RegisterRoute(engine *gin.Engine, controllerStatusPath, controllerPath, goModFilePath, genPath string, routeUrlMethodMap map[string]map[string]map[string][]string, handlerFuncMap map[string]model.HandlerFuncInOut, contrs ...controller.IController) {
 
@@ -53,17 +79,21 @@ func buildHandler(method, preUrl, suffixUrl string, handlerFuncs []model.Handler
 
 	for _, handlerFunc := range handlerFuncs {
 		// 验证 handlerFunc 是否符合规范
+
 		targetType := reflect.TypeOf(handlerFunc.Func)
 		methodName := handlerFunc.ControllerName + "." + handlerFunc.Name
+
 		if reflect.Func != targetType.Kind() {
 			panic(" buildHandler " + methodName + " not func. ")
 		}
 		if targetType.NumIn() < 1 {
-			panic(methodName + " The first parameter needs to be *gin.Context, the return value is only one and must be *socresp.HttpRespResult. ")
+			panic(methodName + " The first parameter needs to be *gin.Context, the return value is only one and must be *socresp.HttpJsonRespResult. ")
 		}
-		if targetType.NumOut() != 1 {
-			panic(methodName + " The first parameter needs to be *gin.Context, the return value is only one and must be *socresp.HttpRespResult. ")
-		}
+
+		// 构建输出参数
+		checkAndBuildOutParam(targetType, &handlerFunc)
+		handlerFunc.OutCount = len(handlerFunc.Outs)
+
 		urlPaths := strings.Split(suffixUrl, "/")
 		// 构建输入参数列表
 		maxIndex := len(handlerFunc.Ins) - 1
@@ -104,27 +134,39 @@ func buildHandler(method, preUrl, suffixUrl string, handlerFuncs []model.Handler
 		}
 		handlerFunc.InCount = maxIndex + 1
 
-		// 构建输出参数
-		for i, _ := range handlerFunc.Outs {
-			elem := targetType.Out(i)
-			isPtr := elem.Kind() == reflect.Ptr
-			(handlerFunc.Outs)[i].IsPointer = isPtr
-			if isPtr {
-				(handlerFunc.Outs)[i].Kind = elem.Elem().Kind()
-				(handlerFunc.Outs)[i].Type = elem.Elem()
-			} else {
-				(handlerFunc.Outs)[i].Kind = elem.Kind()
-				(handlerFunc.Outs)[i].Type = elem.Elem()
-			}
-			if i == 0 && (!isPtr || (handlerFunc.Outs)[i].Kind.String() != "struct" || (handlerFunc.Outs)[i].Type.String() != "resp.HttpRespResult") {
-				panic(methodName + " The return value is only one and must be *socresp.HttpRespResult. ")
-			}
-		}
-		handlerFunc.OutCount = len(handlerFunc.Outs)
-
 		handlers = append(handlers, httpHandler(method, preUrl, suffixUrl, handlerFunc))
 	}
 	return handlers
+}
+
+// checkOutParam 检查controller方法返回类型是否符合要求
+func checkAndBuildOutParam(targetType reflect.Type, handlerFunc *model.HandlerFuncInOut) errors.AppError {
+
+	// 构建输出参数
+	for i, _ := range handlerFunc.Outs {
+		elem := targetType.Out(i)
+		isPtr := elem.Kind() == reflect.Ptr
+		(handlerFunc.Outs)[i].IsPointer = isPtr
+		if isPtr {
+			handlerFunc.Outs[i].Kind = elem.Elem().Kind()
+			handlerFunc.Outs[i].Type = elem.Elem()
+		} else {
+			handlerFunc.Outs[i].Kind = elem.Kind()
+			handlerFunc.Outs[i].Type = elem.Elem()
+		}
+	}
+
+	respContentType := handlerFunc.RouteMethods[0].RespContentType
+
+	msg := string(respContentType) + " 输出类型只允许一个返回参数，且类型为 *" + checkOutParamMsgMap[respContentType]
+	if len(handlerFunc.Outs) != 1 {
+		return errors.NewAppError(consts_error.ControllerMethodError, msg)
+	}
+
+	if !handlerFunc.Outs[0].IsPointer || handlerFunc.Outs[0].Kind.String() != "struct" || handlerFunc.Outs[0].Type.String() != checkOutParamMsgMap[respContentType] {
+		return errors.NewAppError(consts_error.ControllerMethodError, msg)
+	}
+	return nil
 }
 
 // checkParamExistUrl 判断参数是否在url中获取
@@ -143,26 +185,151 @@ func httpHandler(method, preUrl, suffixUrl string, handlerFunc model.HandlerFunc
 
 	log.Info("Handler path: " + method + " " + preUrl + suffixUrl + "      -->      " + handlerFunc.ControllerName + "." + handlerFunc.Name)
 
+	respContentType := handlerFunc.RouteMethods[0].RespContentType
+
 	return func(ctx *gin.Context) {
 
 		ginContext := socreq.GinContext{Ctx: ctx}
 		respData, err := InjectFunc(&ginContext, handlerFunc)
 
-		var respObj *resp.HttpRespResult
-		if err != nil {
-			log.Error(err)
-			respObj = &resp.HttpRespResult{
-				HttpStatus: 500,
-				RespResult: resp.RespResult{
-					Code:    err.Code(),
-					Message: err.Message(),
-				},
-			}
-		} else {
-			if len(respData) > 0 {
-				respObj = (respData)[0].Interface().(*resp.HttpRespResult)
-			}
-		}
-		controller.JsonHttpRespResult(&ginContext, respObj)
+		responseFuncMap[respContentType](&ginContext, respData, err)
 	}
+}
+
+// responseJson 输出json
+func responseJson(ctx *socreq.GinContext, results []reflect.Value, err errors.AppError) {
+	var respObj *resp.HttpJsonRespResult
+
+	if err != nil {
+		log.ErrorCtx(ctx.Ctx.Request.Context(), err)
+		respObj = &resp.HttpJsonRespResult{
+			HttpStatus: 500,
+			RespResult: resp.RespResult{
+				Code:      err.Code(),
+				Message:   err.Message(),
+				Timestamp: time.Now().Unix(),
+			},
+		}
+		controller.JsonHttpRespResult(ctx, respObj)
+		return
+	}
+	if len(results) > 0 {
+		respObj = (results)[0].Interface().(*resp.HttpJsonRespResult)
+	}
+
+	controller.JsonHttpRespResult(ctx, respObj)
+}
+
+// responseHtml
+func responseHtml(ctx *socreq.GinContext, results []reflect.Value, err errors.AppError) {
+	var respObj *resp.HttpHtmlRespResult
+
+	if err != nil {
+		log.ErrorCtx(ctx.Ctx.Request.Context(), err)
+		respObj = &resp.HttpHtmlRespResult{
+			HttpStatus: 500,
+		}
+		controller.HtmlHttpRespResult(ctx, respObj)
+		return
+	}
+	if len(results) > 0 {
+		respObj = (results)[0].Interface().(*resp.HttpHtmlRespResult)
+	}
+
+	controller.HtmlHttpRespResult(ctx, respObj)
+}
+
+// responseText
+func responseText(ctx *socreq.GinContext, results []reflect.Value, err errors.AppError) {
+	var respObj *resp.HttpTextRespResult
+
+	if err != nil {
+		log.ErrorCtx(ctx.Ctx.Request.Context(), err)
+		respObj = &resp.HttpTextRespResult{
+			HttpStatus: 500,
+		}
+		controller.TextHttpRespResult(ctx, respObj)
+		return
+	}
+	if len(results) > 0 {
+		respObj = (results)[0].Interface().(*resp.HttpTextRespResult)
+	}
+
+	controller.TextHttpRespResult(ctx, respObj)
+}
+
+// responseXml
+func responseXml(ctx *socreq.GinContext, results []reflect.Value, err errors.AppError) {
+	var respObj *resp.HttpXmlRespResult
+
+	if err != nil {
+		log.ErrorCtx(ctx.Ctx.Request.Context(), err)
+		respObj = &resp.HttpXmlRespResult{
+			HttpStatus: 500,
+		}
+		controller.XmlHttpRespResult(ctx, respObj)
+		return
+	}
+	if len(results) > 0 {
+		respObj = (results)[0].Interface().(*resp.HttpXmlRespResult)
+	}
+
+	controller.XmlHttpRespResult(ctx, respObj)
+}
+
+// responseHtml
+func responseProtoBuf(ctx *socreq.GinContext, results []reflect.Value, err errors.AppError) {
+	var respObj *resp.HttpProtoBufRespResult
+
+	if err != nil {
+		log.ErrorCtx(ctx.Ctx.Request.Context(), err)
+		respObj = &resp.HttpProtoBufRespResult{
+			HttpStatus: 500,
+		}
+		controller.ProtoBufHttpRespResult(ctx, respObj)
+		return
+	}
+	if len(results) > 0 {
+		respObj = (results)[0].Interface().(*resp.HttpProtoBufRespResult)
+	}
+
+	controller.ProtoBufHttpRespResult(ctx, respObj)
+}
+
+// responseHtml
+func responseRedirect(ctx *socreq.GinContext, results []reflect.Value, err errors.AppError) {
+	var respObj *resp.HttpRedirectRespResult
+
+	if err != nil {
+		log.ErrorCtx(ctx.Ctx.Request.Context(), err)
+		respObj = &resp.HttpRedirectRespResult{
+			HttpStatus: 500,
+		}
+		controller.RedirectHttpRespResult(ctx, respObj)
+		return
+	}
+	if len(results) > 0 {
+		respObj = (results)[0].Interface().(*resp.HttpRedirectRespResult)
+	}
+
+	controller.RedirectHttpRespResult(ctx, respObj)
+}
+
+// responseHtml
+func responseFile(ctx *socreq.GinContext, results []reflect.Value, err errors.AppError) {
+	var respObj *resp.HttpFileRespResult
+
+	if err != nil {
+		log.ErrorCtx(ctx.Ctx.Request.Context(), err)
+		respObj = &resp.HttpFileRespResult{
+			HttpStatus: 500,
+		}
+		controller.FileHttpRespResult(ctx, respObj)
+		return
+	}
+	if len(results) > 0 {
+		respObj = (results)[0].Interface().(*resp.HttpFileRespResult)
+	}
+
+	controller.FileHttpRespResult(ctx, respObj)
 }
