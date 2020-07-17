@@ -30,7 +30,7 @@ var (
 	log                         = logger.Logger()
 
 	// @Router /create    [post,get,delete]  xml  string
-	//    Router标识     url后缀     [支持的http method，为空默认get]   请求body的数据格式，支持：json/text/xml，不填默认json    response的数据格式，支持：json/text/xml/protobuf/file/html/redirect，不填默认json
+	//    Router标识     url后缀     [支持的http method，为空默认get]   请求body的数据格式（get不生效），支持：json/text/xml，不填默认json    response的数据格式，支持：json/text/xml/protobuf/file/html/redirect，不填默认json
 	// 同一个 controller方法 如果有多个 @Router 那么 reqest和response的类型必须相同
 	routeRegex = regexp.MustCompile(`@Router\s+(\S+)(?:\s+\[(\S+)\])?(?:\s+(\S+))?(?:\s+(\S+))?`)
 )

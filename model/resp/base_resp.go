@@ -19,8 +19,7 @@ type HttpJsonRespResult struct {
 }
 
 type HttpTextRespResult struct {
-	Format string
-	Values interface{}
+	Text string
 
 	HttpStatus int
 }

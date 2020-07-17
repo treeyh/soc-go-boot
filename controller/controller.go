@@ -42,7 +42,7 @@ func TextHttpRespResult(g *req.GinContext, resp *resp.HttpTextRespResult) {
 	if resp.HttpStatus == 0 {
 		resp.HttpStatus = 200
 	}
-	g.Ctx.String(resp.HttpStatus, resp.Format, resp.Values)
+	g.Ctx.String(resp.HttpStatus, "%s", resp.Text)
 }
 
 func HtmlHttpRespResult(g *req.GinContext, resp *resp.HttpHtmlRespResult) {
