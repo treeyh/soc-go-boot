@@ -161,8 +161,8 @@ github.com/subosito/gotenv v1.2.0 h1:Slr1R9HxAlEKefgq5jn9U+DnETlIUa6HfgEzj0g5d7s
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
 github.com/tealeg/xlsx/v2 v2.0.1/go.mod h1:l9GvhCCjdaIGkAyZcFedDALcYcXUOei55f6umRMOz9c=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
-github.com/treeyh/soc-go-common v0.0.0-20200824123137-e6fe20c8b0b2 h1:8MrS78AdbulxIWR/MiRyLFauWUCE0YEMzAe1T9GJh/k=
-github.com/treeyh/soc-go-common v0.0.0-20200824123137-e6fe20c8b0b2/go.mod h1:mpVYqQW2MH1K2d2s7E4YmvJhxltfsNSORDICoTt02Fk=
+github.com/treeyh/soc-go-common v0.0.0-20200714141637-e6fe20c8b0b2 h1:N0LYF2InFKqJKryT9e+itXR4q5I71btxlGJqewHYkEw=
+github.com/treeyh/soc-go-common v0.0.0-20200714141637-e6fe20c8b0b2/go.mod h1:mpVYqQW2MH1K2d2s7E4YmvJhxltfsNSORDICoTt02Fk=
 github.com/uber/jaeger-client-go v2.21.1+incompatible h1:oozboeZmWz+tyh3VZttJWlF3K73mHgbokieceqKccLo=
 github.com/uber/jaeger-client-go v2.21.1+incompatible/go.mod h1:WVhlPFC8FDjOFMMWRy2pZqQJSXxYSwNYOkTr/Z6d3Kk=
 github.com/uber/jaeger-lib v2.2.0+incompatible h1:MxZXOiR2JuoANZ3J6DE/U0kSFv/eJ/GfSYVCjK7dyaw=
