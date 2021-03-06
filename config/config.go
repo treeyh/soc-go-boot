@@ -22,7 +22,8 @@ type SocConfig struct {
 	Logger     *map[string]socconfig.LogConfig
 	Trace      *TraceConfig
 	WeChat     *map[string]socconfig.WeChatConfig
-	Params     *ParamsConfig
+	ALiYun     *map[string]socconfig.ALiYunConfig
+	Params     *map[string]string
 }
 
 // AppConfig 应用配置
@@ -47,10 +48,10 @@ type TraceConfig struct {
 	Server string
 }
 
-type ParamsConfig struct {
-	// id盐
-	IdSalt string
-}
+//type ParamsConfig struct {
+//	// id盐
+//	IdSalt string
+//}
 
 func GetSocConfig() *SocConfig {
 	return conf.SocBoot

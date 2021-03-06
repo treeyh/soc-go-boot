@@ -64,11 +64,24 @@ SocBoot:
       AppId: wx419a2e54798f89b9
       AppSecret: 14b55a789ff553681d88d22f80101095
       Host: https://api.weixin.qq.com
+  ALiYun:
+    default:
+      AccessKey: 123
+      AccessKeySecret: 345
+      RegionId: 567
   Params:
     # id盐
     IdSalt: jss#Es84
 
 AppParams:
   Test: test
+  Email: email@mail.com
+  WeChat:
+    Type: weapp
+    AppId: wx419a2e54798f89b9
+    AppSecret: 14b55a789ff553681d88d22f80101095
+    Host: https://api.weixin.qq.com
+
+
 
 

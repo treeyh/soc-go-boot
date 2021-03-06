@@ -5,6 +5,7 @@ import (
 	"github.com/treeyh/soc-go-common/core/consts"
 	"github.com/treeyh/soc-go-common/core/logger"
 	"github.com/treeyh/soc-go-common/core/utils/json"
+	"github.com/treeyh/soc-go-common/library/aliyun"
 	"github.com/treeyh/soc-go-common/library/database"
 	"github.com/treeyh/soc-go-common/library/redis"
 	"github.com/treeyh/soc-go-common/library/wechat"
@@ -14,6 +15,11 @@ var (
 	env = ""
 	log = logger.Logger()
 )
+
+// GetEnv 获取环境
+func GetEnv() string {
+	return env
+}
 
 // LoadConfig 加载配置文件， configRelativePath 配置文件路径
 func LoadConfig(configRelativePath string) string {
@@ -36,6 +42,11 @@ func LoadConfigForceEnv(configRelativePath string, forceEnv string) string {
 	loadConfigInfo(configRelativePath)
 
 	return env
+}
+
+// LoadCustomConfig 加载自定义配置
+func LoadCustomConfig(customConfig interface{}) {
+	conf.Viper.Unmarshal(customConfig)
 }
 
 // loadConfigInfo 加载配置文件， configRelativePath 配置文件路径
@@ -76,6 +87,11 @@ func effectConfig() {
 	// 初始化微信配置
 	if GetSocConfig().WeChat != nil {
 		wechat.InitWeChatConfig(*GetSocConfig().WeChat)
+	}
+
+	// 初始化阿里云配置
+	if GetSocConfig().ALiYun != nil {
+		aliyun.InitALiYunConfig(*GetSocConfig().ALiYun)
 	}
 
 }
