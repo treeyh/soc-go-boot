@@ -25,7 +25,7 @@ func TestLoadConfigForceEnv(t *testing.T) {
 		convey.So(env, convey.ShouldEqual, socconsts.EnvUnitTest)
 
 		socTestConfig := &SocTestConfig{}
-		LoadCustomConfig(socTestConfig)
+		LoadAppConfig(socTestConfig)
 		convey.So(socTestConfig.AppParams.WeChat.Host, convey.ShouldEqual, "https://api.weixin.qq.com")
 		fmt.Println(json.ToJsonIgnoreError(socTestConfig))
 

@@ -44,8 +44,8 @@ func LoadConfigForceEnv(configRelativePath string, forceEnv string) string {
 	return env
 }
 
-// LoadCustomConfig 加载自定义配置
-func LoadCustomConfig(customConfig interface{}) {
+// LoadAppConfig 加载应用配置
+func LoadAppConfig(customConfig interface{}) {
 	conf.Viper.Unmarshal(customConfig)
 }
 
