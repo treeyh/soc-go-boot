@@ -227,6 +227,12 @@ func getRouteRespContentTypeString(contentType model.RouteRespContentType) strin
 		return "model.RespContentTypeHtml"
 	case model.RespContentTypeRedirect:
 		return "model.RespContentTypeRedirect"
+	case model.RespContentTypeImage:
+		return "model.RespContentTypeImage"
+	case model.RespContentTypeVideo:
+		return "model.RespContentTypeVideo"
+	case model.RespContentTypeAudio:
+		return "model.RespContentTypeAudio"
 	default:
 		return "model.RespContentTypeXml"
 	}
