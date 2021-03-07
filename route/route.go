@@ -192,7 +192,9 @@ func httpHandler(method, preUrl, suffixUrl string, handlerFunc *model.HandlerFun
 		ginContext := socreq.GinContext{Ctx: ctx}
 		respData, err := InjectFunc(&ginContext, handlerFunc)
 
-		responseFuncMap[respContentType](&ginContext, respData, err)
+		if function, ok := responseFuncMap[respContentType]; ok {
+			function(&ginContext, respData, err)
+		}
 	}
 }
 
