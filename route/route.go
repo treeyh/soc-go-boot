@@ -130,9 +130,6 @@ func buildHandler(method, preUrl, suffixUrl string, handlerFuncs []model.Handler
 					(handlerFunc.Ins)[i].AssignType = model.QueryAssign
 				}
 			}
-			//fmt.Println((*handlerFunc.Ins)[i].AssignType)
-			//fmt.Println("====" + (*handlerFunc.Ins)[i].Kind.String())
-			//fmt.Println("====" + (*handlerFunc.Ins)[i].Type.String())
 		}
 		handlerFunc.InCount = maxIndex + 1
 

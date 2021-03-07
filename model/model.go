@@ -29,9 +29,9 @@ const (
 	RespContentTypeFile     RouteRespContentType = "file"
 	RespContentTypeHtml     RouteRespContentType = "html"
 	RespContentTypeRedirect RouteRespContentType = "redirect"
-	//RespContentTypeImage    RouteRespContentType = "image"
-	//RespContentTypeVideo    RouteRespContentType = "video"
-	//RespContentTypeAudio    RouteRespContentType = "audio"
+	RespContentTypeImage    RouteRespContentType = "image"
+	RespContentTypeVideo    RouteRespContentType = "video"
+	RespContentTypeAudio    RouteRespContentType = "audio"
 )
 
 // InParamsType 输入参数类型定义

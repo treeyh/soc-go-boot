@@ -290,6 +290,12 @@ func getRouteRespContentType(val string) model.RouteRespContentType {
 		return model.RespContentTypeHtml
 	case "redirect":
 		return model.RespContentTypeRedirect
+	case "image":
+		return model.RespContentTypeImage
+	case "video":
+		return model.RespContentTypeVideo
+	case "audio":
+		return model.RespContentTypeAudio
 	default:
 		return model.RespContentTypeJson
 	}
