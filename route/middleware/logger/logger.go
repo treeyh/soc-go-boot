@@ -9,6 +9,7 @@ import (
 	"github.com/treeyh/soc-go-common/core/logger"
 	"github.com/treeyh/soc-go-common/core/model"
 	"github.com/treeyh/soc-go-common/core/utils/network"
+	"github.com/treeyh/soc-go-common/core/utils/slice"
 	"github.com/treeyh/soc-go-common/core/utils/strs"
 	"github.com/treeyh/soc-go-common/core/utils/times"
 	"github.com/treeyh/soc-go-common/core/utils/uuid"
@@ -19,6 +20,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+var _ignoreLogUrls = make([]string, 0)
 
 func newTraceId() string {
 	return fmt.Sprintf("%s_%s", network.GetIntranetIp(), uuid.NewUuid())
@@ -43,7 +46,10 @@ func isMultipart(contentType string) bool {
 	return strings.Contains(contentType, "multipart/form-data")
 }
 
-func StartTrace() gin.HandlerFunc {
+func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
+
+	_ignoreLogUrls = append(_ignoreLogUrls, ignoreLogUrls...)
+
 	return func(c *gin.Context) {
 
 		traceId := c.Request.Header.Get(coreconsts.TraceIdKey)
@@ -101,6 +107,12 @@ func StartTrace() gin.HandlerFunc {
 		if urlCount <= 6 || httpContext.Url[urlCount-6:] != "health" {
 			// 仅记录非心跳日志
 
+			if slice.ContainString(c.Request.URL.Path, _ignoreLogUrls) {
+				// 匹配到url忽略日志记录
+				return
+			}
+
+			c.Writer.Header().Get("")
 			httpContext = c.Request.Context().Value(consts.TracerHttpContextKey).(*model.HttpContext)
 			httpContext.Status = c.Writer.Status()
 			httpContext.EndTime = times.GetNowMillisecond()
