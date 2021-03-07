@@ -233,6 +233,8 @@ func parseHandlerFunc(controllerName, preUrl string, specDecl *ast.FuncDecl) *mo
 				outs = append(outs, model.ParamsType{})
 			}
 		}
+	} else {
+		outs = append(outs, model.ParamsType{})
 	}
 	handlerFunc.Outs = outs
 	return &handlerFunc
