@@ -42,7 +42,9 @@ func init() {
 	responseFuncMap[model.RespContentTypeText] = responseText
 }
 
-func RegisterRoute(engine *gin.Engine, controllerStatusPath, controllerPath, goModFilePath, genPath string, routeUrlMethodMap map[string]map[string]map[string][]string, handlerFuncMap map[string]model.HandlerFuncInOut, contrs ...controller.IController) {
+func RegisterRoute(engine *gin.Engine, controllerStatusPath, controllerPath, goModFilePath, genPath string,
+	routeUrlMethodMap map[string]map[string]map[string][]string, handlerFuncMap map[string]model.HandlerFuncInOut,
+	contrs ...controller.IController) {
 
 	// 构造controllermap
 	if consts.GetCurrentEnv() == consts.EnvLocal {
@@ -144,6 +146,9 @@ func checkAndBuildOutParam(targetType reflect.Type, handlerFunc *model.HandlerFu
 
 	// 构建输出参数
 	for i, _ := range handlerFunc.Outs {
+		if targetType.NumOut() <= i {
+			continue
+		}
 		elem := targetType.Out(i)
 		isPtr := elem.Kind() == reflect.Ptr
 		(handlerFunc.Outs)[i].IsPointer = isPtr
@@ -158,12 +163,12 @@ func checkAndBuildOutParam(targetType reflect.Type, handlerFunc *model.HandlerFu
 
 	respContentType := handlerFunc.RouteMethods[0].RespContentType
 
-	msg := string(respContentType) + " 输出类型只允许一个返回参数，且类型为 *" + checkOutParamMsgMap[respContentType]
-	if len(handlerFunc.Outs) != 1 {
+	msg := string(respContentType) + " 输出类型最多只允许一个返回参数，且类型为 *" + checkOutParamMsgMap[respContentType]
+	if len(handlerFunc.Outs) > 1 {
 		return errors.NewAppError(consts_error.ControllerMethodError, msg)
 	}
 
-	if !handlerFunc.Outs[0].IsPointer || handlerFunc.Outs[0].Kind.String() != "struct" || handlerFunc.Outs[0].Type.String() != checkOutParamMsgMap[respContentType] {
+	if len(handlerFunc.Outs) == 1 && (!handlerFunc.Outs[0].IsPointer || handlerFunc.Outs[0].Kind.String() != "struct" || handlerFunc.Outs[0].Type.String() != checkOutParamMsgMap[respContentType]) {
 		return errors.NewAppError(consts_error.ControllerMethodError, msg)
 	}
 	return nil
