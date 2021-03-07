@@ -317,7 +317,7 @@ func responseRedirect(ctx *socreq.GinContext, results []reflect.Value, err error
 	controller.RedirectHttpRespResult(ctx, respObj)
 }
 
-// responseHtml
+// responseFile
 func responseFile(ctx *socreq.GinContext, results []reflect.Value, err errors.AppError) {
 	var respObj *resp.HttpFileRespResult
 

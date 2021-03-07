@@ -222,14 +222,16 @@ func parseHandlerFunc(controllerName, preUrl string, specDecl *ast.FuncDecl) *mo
 	}
 	handlerFunc.Ins = ins
 	outs := make([]model.ParamsType, 0)
-	for _, param := range specDecl.Type.Results.List {
-		if len(param.Names) > 0 {
-			for _, pn := range param.Names {
-				fmt.Sprint("return:" + pn.Name)
+	if specDecl.Type.Results.List != nil {
+		for _, param := range specDecl.Type.Results.List {
+			if len(param.Names) > 0 {
+				for _, pn := range param.Names {
+					fmt.Sprint("return:" + pn.Name)
+					outs = append(outs, model.ParamsType{})
+				}
+			} else {
 				outs = append(outs, model.ParamsType{})
 			}
-		} else {
-			outs = append(outs, model.ParamsType{})
 		}
 	}
 	handlerFunc.Outs = outs
