@@ -2,18 +2,19 @@ SocBoot:
   DataSource:
     Master:
       Type: mysql
-      DBUrl: root:2Dv_v2VXnZ8PgG26f@(172.19.90.77:33309)/soc_memory_prod?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
+      DBUrl: root:2Dv_v2VXnZ8PgG26f@(172.19.90.77:33309)/soc_memory_dev?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
   Redis:
     Master:
       Host: 172.19.90.77
       Port: 6379
+      User: ""
       Password: "5ve11PU#VWDSl"
-      Database: 7
-      MaxIdle: 10
-      MaxActive: 30
-      ConnectTimeout: 0
-      ReadTimeout: 0
-      WriteTimeout: 0
+      Database: 0
+      PoolSize: 10
+      MaxIdleTimeout: 10
+      ConnectTimeout: 3
+      ReadTimeout: 3
+      WriteTimeout: 3
   Logger:
     Default:
       LogPath: /data/logs/soc-memory-backend/run.log

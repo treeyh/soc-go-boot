@@ -112,7 +112,6 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 				return
 			}
 
-			c.Writer.Header().Get("")
 			httpContext = c.Request.Context().Value(consts.TracerHttpContextKey).(*model.HttpContext)
 			httpContext.Status = c.Writer.Status()
 			httpContext.EndTime = times.GetNowMillisecond()

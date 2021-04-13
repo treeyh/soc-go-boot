@@ -7,13 +7,14 @@ SocBoot:
     master:
       Host: 192.168.1.101
       Port: 6379
+      User: ""
       Password: ""
       Database: 0
-      MaxIdle: 10
-      MaxActive: 30
-      ConnectTimeout: 0
-      ReadTimeout: 0
-      WriteTimeout: 0
+      PoolSize: 10
+      MaxIdleTimeout: 10
+      ConnectTimeout: 3
+      ReadTimeout: 3
+      WriteTimeout: 3
   Logger:
     default:
       LogPath: ""

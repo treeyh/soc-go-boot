@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	ConfigPath = file.GetCurrentPath() + "/../tests/config/"
+	ConfigPath = file.GetCurrentPath() + "/../tests/configs/"
 )
 
 var (

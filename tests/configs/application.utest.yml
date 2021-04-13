@@ -14,6 +14,8 @@ SocBoot:
       DBUrl: root:mysqldev@(192.168.1.101:3306)/soc_memory_utest?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
       MaxIdleConns: 3
       MaxOpenConns: 3
+      SlowThreshold: 1000
+      LogLevel: info
 
   Trace:
     Enable: false
@@ -23,13 +25,14 @@ SocBoot:
       Host: 192.168.1.101
 #      Host: 127.0.0.1
       Port: 6379
+      User: ""
       Password: ""
-      Database: 11
-      MaxIdle: 10
-      MaxActive: 30
-      ConnectTimeout: 0
-      ReadTimeout: 0
-      WriteTimeout: 0
+      Database: 0
+      PoolSize: 10
+      MaxIdleTimeout: 10
+      ConnectTimeout: 3
+      ReadTimeout: 3
+      WriteTimeout: 3
   Logger:
     default:
       LogPath: ""
