@@ -1,4 +1,4 @@
-package config
+package boot_config
 
 import (
 	"github.com/spf13/viper"
