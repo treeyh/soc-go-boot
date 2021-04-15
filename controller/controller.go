@@ -18,6 +18,75 @@ type IController interface {
 	PreUrl() string
 }
 
+func BuildRespResult(appError errors.AppError, data ...interface{}) *resp.RespResult {
+
+	if len(data) > 0 {
+		return &resp.RespResult{
+			Code:      appError.Code(),
+			Message:   appError.Message(),
+			Data:      data[0],
+			Timestamp: time.Now().Unix(),
+		}
+	}
+	return &resp.RespResult{
+		Code:      appError.Code(),
+		Message:   appError.Message(),
+		Timestamp: time.Now().Unix(),
+	}
+
+}
+
+func BuildOkRespResult(data interface{}) *resp.RespResult {
+	return &resp.RespResult{
+		Code:      errors.OK.Code(),
+		Message:   errors.OK.Message(),
+		Data:      data,
+		Timestamp: time.Now().Unix(),
+	}
+}
+
+func BuildFailRespResult(appError errors.ResultCode, data ...interface{}) *resp.RespResult {
+	if len(data) > 0 {
+		return &resp.RespResult{
+			Code:      appError.Code(),
+			Message:   appError.Message(),
+			Data:      data[0],
+			Timestamp: time.Now().Unix(),
+		}
+	}
+	return &resp.RespResult{
+		Code:      appError.Code(),
+		Message:   appError.Message(),
+		Timestamp: time.Now().Unix(),
+	}
+}
+
+func OkHttpRespResult(data ...interface{}) *resp.HttpJsonRespResult {
+	var result *resp.HttpJsonRespResult
+	if len(data) > 0 {
+		result = &resp.HttpJsonRespResult{
+			Data: resp.RespResult{
+				Code:      errors.OK.Code(),
+				Message:   errors.OK.Message(),
+				Timestamp: time.Now().Unix(),
+				Data:      data[0],
+			},
+			HttpStatus: 200,
+		}
+	} else {
+		result = &resp.HttpJsonRespResult{
+			Data: resp.RespResult{
+				Code:      errors.OK.Code(),
+				Message:   errors.OK.Message(),
+				Timestamp: time.Now().Unix(),
+			},
+			HttpStatus: 200,
+		}
+	}
+
+	return result
+}
+
 func HttpRespResult(respResult *resp.RespResult) *resp.HttpJsonRespResult {
 	return &resp.HttpJsonRespResult{
 		Data:       *respResult,
