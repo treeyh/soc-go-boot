@@ -3,9 +3,9 @@ package validate
 import (
 	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
+	zh_translations "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/treeyh/soc-go-common/core/logger"
-	"gopkg.in/go-playground/validator.v9"
-	zh_translations "gopkg.in/go-playground/validator.v9/translations/zh"
 	"strings"
 )
 
