@@ -52,7 +52,7 @@ func RegisterRoute(engine *gin.Engine, controllerStatusPath, controllerPath, goM
 
 	groupRouteMapTmp := make(map[string]*gin.RouterGroup)
 	for preUrl, suffixUrlMethodMap := range routeUrlMethodMap {
-		groupRouteMapTmp[preUrl] = engine.Group(config.GetSocConfig().App.Server.ContextPath + preUrl)
+		groupRouteMapTmp[preUrl] = engine.Group(boot_config.GetSocConfig().App.Server.ContextPath + preUrl)
 		for suffixUrl, methodMap := range suffixUrlMethodMap {
 			for method, funcInOutKeys := range methodMap {
 				if "*" == method {
