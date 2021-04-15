@@ -18,6 +18,13 @@ type IController interface {
 	PreUrl() string
 }
 
+func HttpRespResult(respResult *resp.RespResult) *resp.HttpJsonRespResult {
+	return &resp.HttpJsonRespResult{
+		Data:       *respResult,
+		HttpStatus: 200,
+	}
+}
+
 // OkJson 输出成功Json结果，仅支持0或1个data
 func OkJson(c *req.GinContext, data ...interface{}) {
 	Json(c, 200, errors.OK.Code(), errors.OK.Message(), data...)
