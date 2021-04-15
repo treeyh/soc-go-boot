@@ -18,24 +18,37 @@ type IController interface {
 	PreUrl() string
 }
 
-func Json(g *req.GinContext, httpStatus int, code int, msg string, data interface{}) {
-	g.Ctx.JSON(httpStatus, resp.RespResult{
-		Code:      code,
-		Message:   msg,
-		Data:      data,
-		Timestamp: time.Now().Unix(),
-	})
+// OkJson 输出成功Json结果，仅支持0或1个data
+func OkJson(c *req.GinContext, data ...interface{}) {
+	Json(c, 200, errors.OK.Code(), errors.OK.Message(), data...)
 }
 
-func JsonRespResult(g *req.GinContext, resp *resp.RespResult) {
-	g.Ctx.JSON(200, resp)
+// FailJson 输出失败Json结果，仅支持0或1个data
+func FailJson(c *req.GinContext, err errors.AppError, data ...interface{}) {
+	Json(c, 200, err.Code(), err.Message(), data...)
 }
 
-func JsonHttpRespResult(g *req.GinContext, resp *resp.HttpJsonRespResult) {
-	if resp.HttpStatus == 0 {
-		resp.HttpStatus = 200
+// FailStatusJson 输出失败Json结果，仅支持0或1个data
+func FailStatusJson(c *req.GinContext, httpStatus int, err errors.AppError, data ...interface{}) {
+	Json(c, httpStatus, err.Code(), err.Message(), data...)
+}
+
+// RespJson 输出Json结果，仅支持0或1个data
+func Json(c *req.GinContext, httpStatus int, code int, msg string, data ...interface{}) {
+	if len(data) > 0 {
+		c.Ctx.JSON(httpStatus, resp.RespResult{
+			Code:      code,
+			Message:   msg,
+			Data:      data[0],
+			Timestamp: time.Now().Unix(),
+		})
+	} else {
+		c.Ctx.JSON(httpStatus, resp.RespResult{
+			Code:      code,
+			Message:   msg,
+			Timestamp: time.Now().Unix(),
+		})
 	}
-	g.Ctx.JSON(resp.HttpStatus, resp.Data)
 }
 
 func TextHttpRespResult(g *req.GinContext, resp *resp.HttpTextRespResult) {
@@ -81,37 +94,4 @@ func FileHttpRespResult(g *req.GinContext, resp *resp.HttpFileRespResult) {
 		resp.FileName = filepath.Base(resp.FilePath)
 	}
 	g.Ctx.FileAttachment(resp.FilePath, resp.FileName)
-}
-
-func OkHttpRespResultByData(data ...interface{}) *resp.HttpJsonRespResult {
-	var result *resp.HttpJsonRespResult
-	if len(data) > 0 {
-		result = &resp.HttpJsonRespResult{
-			Data: resp.RespResult{
-				Code:      errors.OK.Code(),
-				Message:   errors.OK.Message(),
-				Timestamp: time.Now().Unix(),
-				Data:      data[0],
-			},
-			HttpStatus: 200,
-		}
-	} else {
-		result = &resp.HttpJsonRespResult{
-			Data: resp.RespResult{
-				Code:      errors.OK.Code(),
-				Message:   errors.OK.Message(),
-				Timestamp: time.Now().Unix(),
-			},
-			HttpStatus: 200,
-		}
-	}
-
-	return result
-}
-
-func HttpRespResult(respResult *resp.RespResult) *resp.HttpJsonRespResult {
-	return &resp.HttpJsonRespResult{
-		Data:       *respResult,
-		HttpStatus: 200,
-	}
 }

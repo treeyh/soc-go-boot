@@ -3,7 +3,7 @@ package route
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/treeyh/soc-go-boot/common/consts/consts_error"
+	"github.com/treeyh/soc-go-boot/common/boot_consts/boot_error_consts"
 	"github.com/treeyh/soc-go-boot/model"
 	socreq "github.com/treeyh/soc-go-boot/model/req"
 	"github.com/treeyh/soc-go-boot/model/validate"
@@ -177,7 +177,7 @@ func parseBaseType(val string, funcc func(v string) (interface{}, error), inPara
 	value, err := funcc(val)
 	if err != nil {
 		logger.Logger().Error(err)
-		return nil, errors.NewAppErrorByExistError(consts_error.ParseParamError, err, inParam.Name)
+		return nil, errors.NewAppErrorByExistError(boot_error_consts.ParseParamError, err, inParam.Name)
 	}
 	va := reflect.ValueOf(value)
 	if !inParam.IsPointer {
@@ -192,7 +192,7 @@ func parseTimeType(val string, inParam *model.InParamsType) (*reflect.Value, err
 	if err != nil {
 		logger.Logger().Error(err)
 
-		return nil, errors.NewAppErrorByExistError(consts_error.ParseParamError, err, inParam.Name)
+		return nil, errors.NewAppErrorByExistError(boot_error_consts.ParseParamError, err, inParam.Name)
 	}
 	var va reflect.Value
 	if inParam.Type.String() == "types.Time" {
@@ -230,7 +230,7 @@ func parseBody(ctx *gin.Context, inParam *model.InParamsType, reqContentType mod
 	err := ctx.ShouldBindBodyWith(&targetInterface, parseBodyContentType(reqContentType))
 	if err != nil {
 		logger.Logger().Error(err)
-		return nil, errors.NewAppErrorByExistError(consts_error.ParseParamError, err, inParam.Name)
+		return nil, errors.NewAppErrorByExistError(boot_error_consts.ParseParamError, err, inParam.Name)
 	}
 	if !inParam.IsPointer {
 		newStrut = newStrut.Elem()

@@ -1,4 +1,4 @@
-package consts
+package boot_consts
 
 // Trace相关Context的key
 const (
@@ -14,12 +14,4 @@ const (
 	HeaderPlatform      = "SOC-Platform"
 	HeaderApp           = "SOC-App"
 	HeaderClientVersion = "SOC-Client-Version"
-)
-
-// LineSep 换行符
-const (
-	LineSep = "\n"
-
-	// EmptyStr 空字符串
-	EmptyStr = ""
 )

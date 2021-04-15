@@ -1,4 +1,4 @@
-package consts_error
+package boot_error_consts
 
 import "github.com/treeyh/soc-go-common/core/errors"
 

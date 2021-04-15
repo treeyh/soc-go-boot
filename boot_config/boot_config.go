@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/spf13/viper"
-	socconfig "github.com/treeyh/soc-go-common/core/config"
+	"github.com/treeyh/soc-go-common/core/config"
 )
 
 var conf = SocBootConfig{
@@ -17,12 +17,12 @@ type SocBootConfig struct {
 
 type SocConfig struct {
 	App        *AppConfig
-	DataSource *map[string]socconfig.DBConfig    //数据库配置
-	Redis      *map[string]socconfig.RedisConfig //redis配置
-	Logger     *map[string]socconfig.LogConfig
+	DataSource *map[string]config.DBConfig    //数据库配置
+	Redis      *map[string]config.RedisConfig //redis配置
+	Logger     *map[string]config.LogConfig
 	Trace      *TraceConfig
-	WeChat     *map[string]socconfig.WeChatConfig
-	ALiYun     *map[string]socconfig.ALiYunConfig
+	WeChat     *map[string]config.WeChatConfig
+	ALiYun     *map[string]config.ALiYunConfig
 	Params     *map[string]string
 }
 
@@ -47,11 +47,6 @@ type TraceConfig struct {
 	// Server 服务地址
 	Server string
 }
-
-//type ParamsConfig struct {
-//	// id盐
-//	IdSalt string
-//}
 
 func GetSocConfig() *SocConfig {
 	return conf.SocBoot

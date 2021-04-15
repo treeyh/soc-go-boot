@@ -2,8 +2,8 @@ package route
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/treeyh/soc-go-boot/common/consts/consts_error"
-	"github.com/treeyh/soc-go-boot/config"
+	"github.com/treeyh/soc-go-boot/boot_config"
+	"github.com/treeyh/soc-go-boot/common/boot_consts/boot_error_consts"
 	"github.com/treeyh/soc-go-boot/controller"
 	"github.com/treeyh/soc-go-boot/model"
 	socreq "github.com/treeyh/soc-go-boot/model/req"
@@ -12,7 +12,6 @@ import (
 	"github.com/treeyh/soc-go-common/core/errors"
 	"reflect"
 	"strings"
-	"time"
 )
 
 var (
@@ -162,11 +161,11 @@ func checkAndBuildOutParam(targetType reflect.Type, handlerFunc *model.HandlerFu
 
 	msg := string(respContentType) + " 输出类型最多只允许一个返回参数，且类型为 *" + checkOutParamMsgMap[respContentType]
 	if len(handlerFunc.Outs) > 1 {
-		return errors.NewAppError(consts_error.ControllerMethodError, msg)
+		return errors.NewAppError(boot_error_consts.ControllerMethodError, msg)
 	}
 
 	if len(handlerFunc.Outs) == 1 && (!handlerFunc.Outs[0].IsPointer || handlerFunc.Outs[0].Kind.String() != "struct" || handlerFunc.Outs[0].Type.String() != checkOutParamMsgMap[respContentType]) {
-		return errors.NewAppError(consts_error.ControllerMethodError, msg)
+		return errors.NewAppError(boot_error_consts.ControllerMethodError, msg)
 	}
 	return nil
 }
@@ -206,22 +205,14 @@ func responseJson(ctx *socreq.GinContext, results []reflect.Value, err errors.Ap
 
 	if err != nil {
 		log.ErrorCtx(ctx.Ctx.Request.Context(), err)
-		respObj = &resp.HttpJsonRespResult{
-			HttpStatus: 500,
-			Data: resp.RespResult{
-				Code:      err.Code(),
-				Message:   err.Message(),
-				Timestamp: time.Now().Unix(),
-			},
-		}
-		controller.JsonHttpRespResult(ctx, respObj)
+		controller.Json(ctx, 500, err.Code(), err.Message())
 		return
 	}
 	if len(results) > 0 {
 		respObj = (results)[0].Interface().(*resp.HttpJsonRespResult)
 	}
 
-	controller.JsonHttpRespResult(ctx, respObj)
+	controller.OkJson(ctx, respObj.Data)
 }
 
 // responseHtml

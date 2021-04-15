@@ -4,8 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
+	"github.com/treeyh/soc-go-boot/boot_config"
 	"github.com/treeyh/soc-go-boot/common/utils/jaeger_trace"
-	"github.com/treeyh/soc-go-boot/config"
 	"github.com/treeyh/soc-go-common/core/consts"
 )
 

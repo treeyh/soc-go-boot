@@ -1,8 +1,8 @@
 package route
 
 import (
-	"github.com/treeyh/soc-go-boot/common/consts"
 	"github.com/treeyh/soc-go-boot/model"
+	"github.com/treeyh/soc-go-common/core/consts"
 	"github.com/treeyh/soc-go-common/core/utils/file"
 	"github.com/treeyh/soc-go-common/core/utils/strs"
 	"os"

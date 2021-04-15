@@ -1,8 +1,15 @@
 package model
 
-import "reflect"
-
-type HttpParamsAssignType int
+import (
+	"context"
+	"fmt"
+	"github.com/treeyh/soc-go-boot/common/boot_consts"
+	"github.com/treeyh/soc-go-common/core/consts"
+	"github.com/treeyh/soc-go-common/core/utils/network"
+	"github.com/treeyh/soc-go-common/core/utils/uuid"
+	"net/http"
+	"reflect"
+)
 
 const (
 	UnAssign   HttpParamsAssignType = 0
@@ -13,6 +20,11 @@ const (
 	HeaderAssign
 )
 
+var (
+	httpContent HttpContext
+)
+
+type HttpParamsAssignType int
 type RouteReqContentType string
 type RouteRespContentType string
 
@@ -93,4 +105,35 @@ func (h HttpParamsAssignType) String() string {
 	default:
 		return "UNKNOWN"
 	}
+}
+
+type HttpContext struct {
+	Request       *http.Request
+	Url           string
+	Method        string
+	StartTime     int64
+	EndTime       int64
+	TraceId       string
+	Ip            string
+	Status        int
+	App           string
+	AuthToken     string
+	ClientVersion string
+	Platform      string
+}
+
+// GetNewContext 获取一个新的ctx
+func GetNewContext() context.Context {
+	ctx := context.Background()
+	traceId := fmt.Sprintf("%s_%s", network.GetIntranetIp(), uuid.NewUuid())
+	ctx = context.WithValue(ctx, consts.TraceIdKey, traceId)
+	return ctx
+}
+
+func GetHttpContext(ctx context.Context) *HttpContext {
+	val := ctx.Value(boot_consts.TracerHttpContextKey)
+	if val == nil {
+		return &httpContent
+	}
+	return val.(*HttpContext)
 }

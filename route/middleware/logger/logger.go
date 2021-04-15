@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/treeyh/soc-go-boot/common/consts"
-	coreconsts "github.com/treeyh/soc-go-common/core/consts"
+	"github.com/treeyh/soc-go-boot/common/boot_consts"
+	"github.com/treeyh/soc-go-boot/model"
+	"github.com/treeyh/soc-go-common/core/consts"
 	"github.com/treeyh/soc-go-common/core/logger"
-	"github.com/treeyh/soc-go-common/core/model"
 	"github.com/treeyh/soc-go-common/core/utils/network"
 	"github.com/treeyh/soc-go-common/core/utils/slice"
 	"github.com/treeyh/soc-go-common/core/utils/strs"
@@ -52,15 +52,15 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 
-		traceId := c.Request.Header.Get(coreconsts.TraceIdKey)
+		traceId := c.Request.Header.Get(consts.TraceIdKey)
 		if "" == traceId {
 			traceId = newTraceId()
 		}
 
-		app := c.Request.Header.Get(consts.HeaderApp)
-		authToken := c.Request.Header.Get(consts.HeaderAuthTokenKey)
-		platform := c.Request.Header.Get(consts.HeaderPlatform)
-		clientVersion := c.Request.Header.Get(consts.HeaderClientVersion)
+		app := c.Request.Header.Get(boot_consts.HeaderApp)
+		authToken := c.Request.Header.Get(boot_consts.HeaderAuthTokenKey)
+		platform := c.Request.Header.Get(boot_consts.HeaderPlatform)
+		clientVersion := c.Request.Header.Get(boot_consts.HeaderClientVersion)
 
 		contentType := c.ContentType()
 		body := ""
@@ -93,11 +93,11 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 			}
 		}
 
-		ctx := context.WithValue(c.Request.Context(), coreconsts.TraceIdKey, traceId)
-		ctx = context.WithValue(ctx, consts.TracerHttpContextKey, httpContext)
+		ctx := context.WithValue(c.Request.Context(), consts.TraceIdKey, traceId)
+		ctx = context.WithValue(ctx, boot_consts.TracerHttpContextKey, httpContext)
 		c.Request = c.Request.WithContext(ctx)
 
-		c.Header(coreconsts.TraceIdKey, traceId)
+		c.Header(consts.TraceIdKey, traceId)
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 		c.Writer = blw
 
@@ -112,7 +112,7 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 				return
 			}
 
-			httpContext = c.Request.Context().Value(consts.TracerHttpContextKey).(*model.HttpContext)
+			httpContext = c.Request.Context().Value(boot_consts.TracerHttpContextKey).(*model.HttpContext)
 			httpContext.Status = c.Writer.Status()
 			httpContext.EndTime = times.GetNowMillisecond()
 			runtime := httpContext.EndTime - httpContext.StartTime
@@ -123,11 +123,11 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 			//	httpContext.Method, httpContext.Url, strings.ReplaceAll(body, "\n", "\\n"), times.GetDateTimeStrByMillisecond(httpContext.EndTime),
 			//	runtimes, httpStatus, blw.body.String())
 
-			logger.LoggerByName("rr").InfoCtx(c.Request.Context(), blw.body.String(), zap.String("clientVersion", clientVersion), zap.String("authToken", authToken),
+			logger.Logger().InfoCtx(c.Request.Context(), blw.body.String(), zap.String("clientVersion", clientVersion), zap.String("authToken", authToken),
 				zap.String("duration", runtimes), zap.String("app", app), zap.String("platform", platform), zap.String("requestBody", strings.ReplaceAll(body, "\n", "\\n")),
 				zap.String("start", times.GetDateTimeStrByMillisecond(httpContext.StartTime)), zap.String("end", times.GetDateTimeStrByMillisecond(httpContext.EndTime)),
 				zap.String("ip", httpContext.Ip), zap.String("contentType", contentType),
-				zap.String("method", httpContext.Method), zap.String("url", httpContext.Url), zap.String("httpStatus", httpStatus))
+				zap.String("method", httpContext.Method), zap.String("url", httpContext.Url), zap.String("httpStatus", httpStatus), zap.String("socLog", "rr"))
 
 		}
 	}
