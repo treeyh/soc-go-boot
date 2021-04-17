@@ -208,11 +208,13 @@ func responseJson(ctx *socreq.GinContext, results []reflect.Value, err errors.Ap
 		controller.Json(ctx, 500, err.Code(), err.Message())
 		return
 	}
+
 	if len(results) > 0 {
 		respObj = (results)[0].Interface().(*resp.HttpJsonRespResult)
+		controller.Json(ctx, respObj.HttpStatus, respObj.Resp.Code, respObj.Resp.Message, respObj.Resp.Data)
+	} else {
+		controller.OkJson(ctx, nil)
 	}
-
-	controller.OkJson(ctx, respObj.Data)
 }
 
 // responseHtml

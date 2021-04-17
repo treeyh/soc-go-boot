@@ -65,7 +65,7 @@ func OkHttpRespResult(data ...interface{}) *resp.HttpJsonRespResult {
 	var result *resp.HttpJsonRespResult
 	if len(data) > 0 {
 		result = &resp.HttpJsonRespResult{
-			Data: resp.RespResult{
+			Resp: resp.RespResult{
 				Code:      errors.OK.Code(),
 				Message:   errors.OK.Message(),
 				Timestamp: time.Now().Unix(),
@@ -75,7 +75,7 @@ func OkHttpRespResult(data ...interface{}) *resp.HttpJsonRespResult {
 		}
 	} else {
 		result = &resp.HttpJsonRespResult{
-			Data: resp.RespResult{
+			Resp: resp.RespResult{
 				Code:      errors.OK.Code(),
 				Message:   errors.OK.Message(),
 				Timestamp: time.Now().Unix(),
@@ -89,7 +89,7 @@ func OkHttpRespResult(data ...interface{}) *resp.HttpJsonRespResult {
 
 func HttpRespResult(respResult *resp.RespResult) *resp.HttpJsonRespResult {
 	return &resp.HttpJsonRespResult{
-		Data:       *respResult,
+		Resp:       *respResult,
 		HttpStatus: 200,
 	}
 }

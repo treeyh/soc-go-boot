@@ -8,7 +8,7 @@ type RespResult struct {
 }
 
 type HttpJsonRespResult struct {
-	Data interface{}
+	Resp RespResult
 
 	HttpStatus int
 }
