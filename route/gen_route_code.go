@@ -16,7 +16,7 @@ const (
 	globalRouterTemplate = `package {{.routersDir}}
 
 import (
-	"{{.appModuleName}}/app/controller"
+	"{{.appModuleName}}/internal/controller"
 	"github.com/treeyh/soc-go-boot/model"
 )
 
