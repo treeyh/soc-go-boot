@@ -288,6 +288,8 @@ github.com/treeyh/soc-go-common v0.0.0-20210415063915-863a58a862e4 h1:7SrOvwbG48
 github.com/treeyh/soc-go-common v0.0.0-20210415063915-863a58a862e4/go.mod h1:H7+K9kSvhEuoY7sg0EV7kMk0oHB6BTSOM7JOlreg02Q=
 github.com/treeyh/soc-go-common v0.0.0-20210415065916-e5e910bac8a5 h1:YlLIhTkOWjQNwI4KVq9V+mbC9xZt84cESN0HHUs57L8=
 github.com/treeyh/soc-go-common v0.0.0-20210415065916-e5e910bac8a5/go.mod h1:H7+K9kSvhEuoY7sg0EV7kMk0oHB6BTSOM7JOlreg02Q=
+github.com/treeyh/soc-go-common v0.0.0-20210419050619-37959c8807c5 h1:0bNLfbhF4IIKQRNYCxnEUDSNS/DzH6m/UVTan2x7CgI=
+github.com/treeyh/soc-go-common v0.0.0-20210419050619-37959c8807c5/go.mod h1:H7+K9kSvhEuoY7sg0EV7kMk0oHB6BTSOM7JOlreg02Q=
 github.com/uber/jaeger-client-go v2.21.1+incompatible h1:oozboeZmWz+tyh3VZttJWlF3K73mHgbokieceqKccLo=
 github.com/uber/jaeger-client-go v2.21.1+incompatible/go.mod h1:WVhlPFC8FDjOFMMWRy2pZqQJSXxYSwNYOkTr/Z6d3Kk=
 github.com/uber/jaeger-lib v2.2.0+incompatible h1:MxZXOiR2JuoANZ3J6DE/U0kSFv/eJ/GfSYVCjK7dyaw=
