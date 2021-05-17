@@ -302,6 +302,7 @@ github.com/treeyh/soc-go-common v0.0.0-20210419050619-37959c8807c5 h1:0bNLfbhF4I
 github.com/treeyh/soc-go-common v0.0.0-20210419050619-37959c8807c5/go.mod h1:H7+K9kSvhEuoY7sg0EV7kMk0oHB6BTSOM7JOlreg02Q=
 github.com/treeyh/soc-go-common v0.0.0-20210513113646-3e44e09814bd h1:GfxBLeOrSFl5RRRk5Fw0wFnj11CCSAUC+Yix3d9zWss=
 github.com/treeyh/soc-go-common v0.0.0-20210513113646-3e44e09814bd/go.mod h1:H7+K9kSvhEuoY7sg0EV7kMk0oHB6BTSOM7JOlreg02Q=
+github.com/treeyh/soc-go-common v0.0.0-20210513120132-287208ab192d/go.mod h1:H7+K9kSvhEuoY7sg0EV7kMk0oHB6BTSOM7JOlreg02Q=
 github.com/uber/jaeger-client-go v2.21.1+incompatible h1:oozboeZmWz+tyh3VZttJWlF3K73mHgbokieceqKccLo=
 github.com/uber/jaeger-client-go v2.21.1+incompatible/go.mod h1:WVhlPFC8FDjOFMMWRy2pZqQJSXxYSwNYOkTr/Z6d3Kk=
 github.com/uber/jaeger-lib v2.2.0+incompatible h1:MxZXOiR2JuoANZ3J6DE/U0kSFv/eJ/GfSYVCjK7dyaw=
@@ -347,6 +348,8 @@ golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 h1:/ZScEX8SfEmUGRHs0gxpqt
 golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83/go.mod h1:jdWPYTVW3xRLrWPugEBEK3UY2ZEsg3UU495nc5E+M+I=
 golang.org/x/crypto v0.0.0-20210506145944-38f3c27a63bf h1:B2n+Zi5QeYRDAEodEu72OS36gmTWjgpXr2+cWcBW90o=
 golang.org/x/crypto v0.0.0-20210506145944-38f3c27a63bf/go.mod h1:P+XmwS30IXTQdn5tA2iutPOUgjI07+tq3H3K9MVA1s8=
+golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a h1:kr2P4QFmQr29mSLA43kwrOcgcReGTfbE9N577tCTuBc=
+golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a/go.mod h1:P+XmwS30IXTQdn5tA2iutPOUgjI07+tq3H3K9MVA1s8=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190306152737-a1d7652674e8/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190510132918-efd6b22b2522/go.mod h1:ZjyILWgesfNpC6sMxTJOJm9Kp84zZh5NQWvqDGG3Qr8=
