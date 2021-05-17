@@ -24,7 +24,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
-	github.com/treeyh/soc-go-common v0.0.0-20210513120132-287208ab192d // indirect
+	github.com/treeyh/soc-go-common v0.0.0-20210517130235-52371457be71 // indirect
 	github.com/uber/jaeger-client-go v2.21.1+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	github.com/ugorji/go v1.2.5 // indirect
