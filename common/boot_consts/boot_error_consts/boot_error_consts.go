@@ -8,4 +8,7 @@ var (
 
 	// ParseParamError 获取参数失败
 	ParseParamError = errors.NewResultCode(201001, "%s 获取参数失败")
+
+	// SkyWalkingNotInit SkyWalking未初始化
+	SkyWalkingNotInit = errors.NewResultCode(201051, "SkyWalking未初始化")
 )

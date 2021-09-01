@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/SkyAPM/go2sky"
 	"github.com/treeyh/soc-go-boot/common/boot_consts"
 	"github.com/treeyh/soc-go-boot/model"
 	"github.com/treeyh/soc-go-common/core/consts"
@@ -46,16 +47,28 @@ func isMultipart(contentType string) bool {
 	return strings.Contains(contentType, "multipart/form-data")
 }
 
+// getTraceIdSpanId 获取traceid和spanid
+func getTraceIdSpanId(c *gin.Context) (string, string) {
+	traceId := go2sky.TraceID(c.Request.Context())
+	spanId := go2sky.SpanID(c.Request.Context())
+	// 判断是否已有skywalking traceId
+	if "" == traceId || go2sky.EmptyTraceID == traceId {
+		traceId = c.Request.Header.Get(consts.TraceIdKey)
+		// 判断是否已有请求 traceId
+		if "" == traceId || go2sky.EmptyTraceID == traceId {
+			traceId = newTraceId()
+		}
+	}
+	return traceId, strconv.Itoa(int(spanId))
+}
+
 func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 
 	_ignoreLogUrls = append(_ignoreLogUrls, ignoreLogUrls...)
 
 	return func(c *gin.Context) {
 
-		traceId := c.Request.Header.Get(consts.TraceIdKey)
-		if "" == traceId {
-			traceId = newTraceId()
-		}
+		traceId, spanId := getTraceIdSpanId(c)
 
 		app := c.Request.Header.Get(boot_consts.HeaderApp)
 		authToken := c.Request.Header.Get(boot_consts.HeaderAuthTokenKey)
@@ -73,6 +86,7 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 			Ip:            c.ClientIP(),
 			App:           app,
 			TraceId:       traceId,
+			SpanId:        spanId,
 			AuthToken:     authToken,
 			Platform:      platform,
 			ClientVersion: clientVersion,
@@ -126,7 +140,7 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 			logger.Logger().InfoCtx(c.Request.Context(), blw.body.String(), zap.String("clientVersion", clientVersion), zap.String("authToken", authToken),
 				zap.String("duration", runtimes), zap.String("app", app), zap.String("platform", platform), zap.String("requestBody", strings.ReplaceAll(body, "\n", "\\n")),
 				zap.String("start", times.GetDateTimeStrByMillisecond(httpContext.StartTime)), zap.String("end", times.GetDateTimeStrByMillisecond(httpContext.EndTime)),
-				zap.String("ip", httpContext.Ip), zap.String("contentType", contentType),
+				zap.String("ip", httpContext.Ip), zap.String("contentType", contentType), zap.String("spanId", httpContext.SpanId),
 				zap.String("method", httpContext.Method), zap.String("url", httpContext.Url), zap.String("httpStatus", httpStatus), zap.String("socLog", "rr"))
 
 		}

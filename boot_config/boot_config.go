@@ -40,10 +40,12 @@ type ServerConfig struct {
 	ContextPath string
 }
 
-// Trace trace配置
+// TraceConfig trace配置
 type TraceConfig struct {
 	// Enable 是否开启
 	Enable bool
+	// Type 类型，仅支持 SkyWalking
+	Type string
 	// Server 服务地址
 	Server string
 }

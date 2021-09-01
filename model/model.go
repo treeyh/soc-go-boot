@@ -114,6 +114,7 @@ type HttpContext struct {
 	StartTime     int64
 	EndTime       int64
 	TraceId       string
+	SpanId        string
 	Ip            string
 	Status        int
 	App           string
