@@ -17,7 +17,9 @@ SocBoot:
       SlowThreshold: 1000
       LogLevel: info
   Trace:
-    Enable: true
+    Enable: false
+    type: SkyWalking
+    Namespace: ""
     Server: "127.0.0.1:6831"
   Redis:
     master:

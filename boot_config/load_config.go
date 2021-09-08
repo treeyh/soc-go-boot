@@ -8,6 +8,7 @@ import (
 	"github.com/treeyh/soc-go-common/library/aliyun"
 	"github.com/treeyh/soc-go-common/library/database"
 	"github.com/treeyh/soc-go-common/library/redis"
+	"github.com/treeyh/soc-go-common/library/tracing"
 	"github.com/treeyh/soc-go-common/library/wechat"
 )
 
@@ -73,6 +74,11 @@ func effectConfig() {
 	}
 
 	log.Info(json.ToJsonIgnoreError(*GetSocConfig()))
+
+	// 初始化sky walking配置,需要优先初始化
+	if GetSocConfig().Trace != nil {
+		tracing.InitTracing(*GetSocConfig().Trace, GetSocConfig().App.Name)
+	}
 
 	// 初始化缓存配置
 	if GetSocConfig().Redis != nil {

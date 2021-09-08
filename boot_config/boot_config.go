@@ -20,7 +20,7 @@ type SocConfig struct {
 	DataSource *map[string]config.DBConfig    //数据库配置
 	Redis      *map[string]config.RedisConfig //redis配置
 	Logger     *map[string]config.LogConfig
-	Trace      *TraceConfig
+	Trace      *config.TraceConfig
 	WeChat     *map[string]config.WeChatConfig
 	ALiYun     *map[string]config.ALiYunConfig
 	Params     *map[string]string
@@ -38,16 +38,6 @@ type AppConfig struct {
 type ServerConfig struct {
 	Port        int
 	ContextPath string
-}
-
-// TraceConfig trace配置
-type TraceConfig struct {
-	// Enable 是否开启
-	Enable bool
-	// Type 类型，仅支持 SkyWalking
-	Type string
-	// Server 服务地址
-	Server string
 }
 
 func GetSocConfig() *SocConfig {
