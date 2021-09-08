@@ -101,3 +101,8 @@ func effectConfig() {
 	}
 
 }
+
+// Dispose 服务停止时资源释放
+func Dispose() {
+	tracing.CloseReport()
+}
