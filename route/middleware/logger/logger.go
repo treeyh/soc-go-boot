@@ -136,7 +136,7 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 				return
 			}
 
-			httpContext = c.Request.Context().Value(boot_consts.ContextHttpContextKey).(*model.HttpContext)
+			httpContext = model.GetHttpContext(c.Request.Context())
 			httpContext.Status = c.Writer.Status()
 			httpContext.EndTime = times.GetNowMillisecond()
 			runtime := httpContext.EndTime - httpContext.StartTime
