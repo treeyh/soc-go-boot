@@ -47,13 +47,23 @@ func isMultipart(contentType string) bool {
 	return strings.Contains(contentType, "multipart/form-data")
 }
 
+// isNeedBody 是否需要body体
+func isNeedBody(contentType string) bool {
+	return contentType == "" ||
+		strings.Contains(contentType, "/json") ||
+		strings.Contains(contentType, "javascript") ||
+		strings.Contains(contentType, "/html") ||
+		strings.Contains(contentType, "/plain") ||
+		strings.Contains(contentType, "/xhtml")
+}
+
 // getTraceIdSpanId 获取traceid和spanid
 func getTraceIdSpanId(c *gin.Context) (string, string) {
 	traceId := go2sky.TraceID(c.Request.Context())
 	spanId := go2sky.SpanID(c.Request.Context())
 	// 判断是否已有skywalking traceId
 	if "" == traceId || go2sky.EmptyTraceID == traceId {
-		traceId = c.Request.Header.Get(consts.TraceIdKey)
+		traceId = c.Request.Header.Get(consts.HeaderTraceIdKey)
 		// 判断是否已有请求 traceId
 		if "" == traceId || go2sky.EmptyTraceID == traceId {
 			traceId = newTraceId()
@@ -92,7 +102,7 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 			ClientVersion: clientVersion,
 		}
 
-		if !isBinaryContent(contentType) && !isMultipart(contentType) {
+		if isNeedBody(contentType) {
 			// 判断不是上传文件等大消息体，记录消息体日志
 			//c.Request.ParseForm()
 			//postForm = c.Request.PostForm.Encode()
@@ -107,11 +117,11 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 			}
 		}
 
-		ctx := context.WithValue(c.Request.Context(), consts.TraceIdKey, traceId)
-		ctx = context.WithValue(ctx, boot_consts.TracerHttpContextKey, httpContext)
+		ctx := context.WithValue(c.Request.Context(), consts.HeaderTraceIdKey, traceId)
+		ctx = context.WithValue(ctx, boot_consts.ContextHttpContextKey, httpContext)
 		c.Request = c.Request.WithContext(ctx)
 
-		c.Header(consts.TraceIdKey, traceId)
+		c.Header(consts.HeaderTraceIdKey, traceId)
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 		c.Writer = blw
 
@@ -126,7 +136,7 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 				return
 			}
 
-			httpContext = c.Request.Context().Value(boot_consts.TracerHttpContextKey).(*model.HttpContext)
+			httpContext = c.Request.Context().Value(boot_consts.ContextHttpContextKey).(*model.HttpContext)
 			httpContext.Status = c.Writer.Status()
 			httpContext.EndTime = times.GetNowMillisecond()
 			runtime := httpContext.EndTime - httpContext.StartTime
@@ -137,11 +147,23 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 			//	httpContext.Method, httpContext.Url, strings.ReplaceAll(body, "\n", "\\n"), times.GetDateTimeStrByMillisecond(httpContext.EndTime),
 			//	runtimes, httpStatus, blw.body.String())
 
-			logger.Logger().InfoCtx(c.Request.Context(), blw.body.String(), zap.String("clientVersion", clientVersion), zap.String("authToken", authToken),
-				zap.String("duration", runtimes), zap.String("app", app), zap.String("platform", platform), zap.String("requestBody", strings.ReplaceAll(body, "\n", "\\n")),
-				zap.String("start", times.GetDateTimeStrByMillisecond(httpContext.StartTime)), zap.String("end", times.GetDateTimeStrByMillisecond(httpContext.EndTime)),
-				zap.String("ip", httpContext.Ip), zap.String("contentType", contentType), zap.String("spanId", httpContext.SpanId),
-				zap.String("method", httpContext.Method), zap.String("url", httpContext.Url), zap.String("httpStatus", httpStatus), zap.String("socLog", "rr"))
+			logger.Logger().InfoCtx(c.Request.Context(),
+				strings.ReplaceAll(blw.body.String(), "\n", "\\n"),
+				zap.String("clientVersion", clientVersion),
+				zap.String("authToken", authToken),
+				zap.String("duration", runtimes),
+				zap.String("app", app),
+				zap.String("platform", platform),
+				zap.String("requestBody", strings.ReplaceAll(body, "\n", "\\n")),
+				zap.String("start", times.GetDateTimeMillisecondStrByMillisecond(httpContext.StartTime)),
+				zap.String("end", times.GetDateTimeMillisecondStrByMillisecond(httpContext.EndTime)),
+				zap.String("ip", httpContext.Ip),
+				zap.String("contentType", contentType),
+				zap.String("spanId", httpContext.SpanId),
+				zap.String("method", httpContext.Method),
+				zap.String("url", httpContext.Url),
+				zap.String("httpStatus", httpStatus),
+				zap.String("socLog", "rr"))
 
 		}
 	}

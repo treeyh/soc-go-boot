@@ -21,6 +21,7 @@ type SocConfig struct {
 	Redis      *map[string]config.RedisConfig //redis配置
 	Logger     *map[string]config.LogConfig
 	Trace      *config.TraceConfig
+	Signature  *SignatureConfig
 	WeChat     *map[string]config.WeChatConfig
 	ALiYun     *map[string]config.ALiYunConfig
 	Params     *map[string]string
@@ -38,6 +39,37 @@ type AppConfig struct {
 type ServerConfig struct {
 	Port        int
 	ContextPath string
+}
+
+// SignatureConfig 签名配置
+type SignatureConfig struct {
+
+	// Enable 是否开启
+	Enable bool `json:"enable"`
+
+	// Headers 需要加入签名的http 头
+	Headers []string `json:"headers"`
+
+	// IgnoreUrls 忽略签名校验Url
+	IgnoreUrls []string `json:"ignoreUrls"`
+
+	// TimeRange 时间戳允许正负范围，单位秒。
+	TimeRange int64 `json:"timeRange"`
+
+	// IgnoreQuery  忽略校验的query参数，只能在非pre和prod环境生效
+	IgnoreQuery string `json:"ignoreQuery"`
+}
+
+type VerifyConfig struct {
+
+	// PartnerCode 合作方编号
+	PartnerCode string `json:"partnerCode"`
+
+	// AppCode 应用编号
+	AppCode string `json:"appCode"`
+
+	// SecretKeys 签名密钥
+	SecretKeys []string `json:"secretKeys"`
 }
 
 func GetSocConfig() *SocConfig {

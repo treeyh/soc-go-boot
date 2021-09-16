@@ -20,7 +20,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.7.1
-	github.com/treeyh/soc-go-common v0.0.0-20210908034738-2b79c652511c
+	github.com/treeyh/soc-go-common v0.0.0-20210916080404-c44b60ef67b2
 	github.com/uber/jaeger-client-go v2.21.1+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	go.uber.org/zap v1.16.0

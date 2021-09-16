@@ -11,4 +11,13 @@ var (
 
 	// SkyWalkingNotInit SkyWalking未初始化
 	SkyWalkingNotInit = errors.NewResultCode(201051, "SkyWalking未初始化")
+
+	// SignKeyNotExist 签名key不存在
+	SignKeyNotExist = errors.NewResultCode(201061, "签名key不存在")
+
+	// SignAuthFail 签名认证失败
+	SignAuthFail = errors.NewResultCode(201062, "签名认证失败")
+
+	// RequestTimestampOverLimit 请求时间戳超过阈值
+	RequestTimestampOverLimit = errors.NewResultCode(201063, "请求时间戳超过阈值")
 )

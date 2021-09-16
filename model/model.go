@@ -117,17 +117,20 @@ type HttpContext struct {
 	SpanId        string
 	Ip            string
 	Status        int
+	PartnerId     string
 	App           string
+	Body          string
 	AuthToken     string
 	ClientVersion string
 	Platform      string
+	Channel       string
 }
 
 // GetNewContext 获取一个新的ctx
 func GetNewContext() context.Context {
 	ctx := context.Background()
 	traceId := fmt.Sprintf("%s_%s", network.GetIntranetIp(), uuid.NewUuid())
-	ctx = context.WithValue(ctx, consts.TraceIdKey, traceId)
+	ctx = context.WithValue(ctx, consts.ContextTracerKey, traceId)
 	return ctx
 }
 
