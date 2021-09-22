@@ -135,7 +135,7 @@ func GetNewContext() context.Context {
 }
 
 func GetHttpContext(ctx context.Context) *HttpContext {
-	val := ctx.Value(boot_consts.TracerHttpContextKey)
+	val := ctx.Value(boot_consts.ContextHttpContextKey)
 	if val == nil {
 		return &httpContent
 	}
