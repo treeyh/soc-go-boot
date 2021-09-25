@@ -117,7 +117,7 @@ type HttpContext struct {
 	SpanId        string
 	Ip            string
 	Status        int
-	PartnerId     string
+	PartnerCode   string
 	App           string
 	Body          string
 	AuthToken     string

@@ -3,12 +3,11 @@ package exception
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/treeyh/soc-go-boot/model/resp"
+	"github.com/treeyh/soc-go-boot/controller"
 	"github.com/treeyh/soc-go-common/core/errors"
 	"github.com/treeyh/soc-go-common/core/logger"
 	"runtime/debug"
 	"strings"
-	"time"
 )
 
 var (
@@ -26,11 +25,7 @@ func SetUp() gin.HandlerFunc {
 
 				log.ErrorCtx(c.Request.Context(), DebugStack)
 
-				c.JSON(200, resp.RespResult{
-					Code:      errors.SystemErr.Code(),
-					Message:   errors.SystemErr.Message(),
-					Timestamp: time.Now().Unix(),
-				})
+				controller.FailJson(c, errors.NewAppError(errors.SystemErr))
 				c.Abort()
 				return
 			}

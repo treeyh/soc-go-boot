@@ -1,13 +1,12 @@
 package verify_signature
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/treeyh/soc-go-boot/boot_config"
 	"github.com/treeyh/soc-go-boot/common/boot_consts"
 	"github.com/treeyh/soc-go-boot/common/boot_consts/boot_error_consts"
+	"github.com/treeyh/soc-go-boot/controller"
 	"github.com/treeyh/soc-go-boot/model"
-	"github.com/treeyh/soc-go-boot/model/resp"
 	"github.com/treeyh/soc-go-common/core/consts"
 	"github.com/treeyh/soc-go-common/core/errors"
 	"github.com/treeyh/soc-go-common/core/logger"
@@ -53,11 +52,7 @@ func StartVerifySignature(getVerifyConfig func(*gin.Context) *boot_config.Verify
 
 		verifyConfig := getVerifyConfig(c)
 		if verifyConfig == nil {
-			c.JSON(200, resp.RespResult{
-				Code:      boot_error_consts.SignKeyNotExist.Code(),
-				Message:   boot_error_consts.SignKeyNotExist.Message(),
-				Timestamp: time.Now().Unix(),
-			})
+			controller.FailJson(c, errors.NewAppError(boot_error_consts.SignKeyNotExist))
 			c.Abort()
 			return
 		}
@@ -85,11 +80,7 @@ func StartVerifySignature(getVerifyConfig func(*gin.Context) *boot_config.Verify
 		}
 
 		if !checkFlag {
-			c.JSON(200, resp.RespResult{
-				Code:      boot_error_consts.SignAuthFail.Code(),
-				Message:   boot_error_consts.SignAuthFail.Message(),
-				Timestamp: time.Now().Unix(),
-			})
+			controller.FailJson(c, errors.NewAppError(boot_error_consts.SignAuthFail))
 			c.Abort()
 			return
 		}
@@ -105,11 +96,7 @@ func checkTimestampOverLimit(c *gin.Context) bool {
 	if err != nil {
 		log.ErrorCtx2(c.Request.Context(), err, "header timestamp param error. timestamp:"+timestampStr)
 
-		c.JSON(200, resp.RespResult{
-			Code:      errors.ParamError.Code(),
-			Message:   fmt.Sprintf(errors.ParamError.Message(), consts.HeaderTimestampKey),
-			Timestamp: time.Now().Unix(),
-		})
+		controller.FailJson(c, errors.NewAppError(errors.ParamError, consts.HeaderTimestampKey))
 		c.Abort()
 		return false
 	}
@@ -117,11 +104,7 @@ func checkTimestampOverLimit(c *gin.Context) bool {
 	now := time.Now().UTC()
 	if (now.Unix()+boot_config.GetSocConfig().Signature.TimeRange) < timestamp.UTC().Unix() ||
 		(now.Unix()-boot_config.GetSocConfig().Signature.TimeRange) > timestamp.UTC().Unix() {
-		c.JSON(200, resp.RespResult{
-			Code:      boot_error_consts.RequestTimestampOverLimit.Code(),
-			Message:   boot_error_consts.RequestTimestampOverLimit.Message() + "; timestamp:" + timestampStr,
-			Timestamp: time.Now().Unix(),
-		})
+		controller.FailJson(c, errors.NewAppError(boot_error_consts.RequestTimestampOverLimit))
 		c.Abort()
 		return false
 	}

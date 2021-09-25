@@ -205,15 +205,15 @@ func responseJson(ctx *socreq.GinContext, results []reflect.Value, err errors.Ap
 
 	if err != nil {
 		log.ErrorCtx(ctx.Ctx.Request.Context(), err)
-		controller.Json(ctx, 500, err.Code(), err.Message())
+		controller.Json(ctx.Ctx, 500, err.Code(), err.Message())
 		return
 	}
 
 	if len(results) > 0 {
 		respObj = (results)[0].Interface().(*resp.HttpJsonRespResult)
-		controller.Json(ctx, respObj.HttpStatus, respObj.Resp.Code, respObj.Resp.Message, respObj.Resp.Data)
+		controller.Json(ctx.Ctx, respObj.HttpStatus, respObj.Resp.Code, respObj.Resp.Message, respObj.Resp.Data)
 	} else {
-		controller.OkJson(ctx, nil)
+		controller.OkJson(ctx.Ctx, nil)
 	}
 }
 
@@ -226,14 +226,14 @@ func responseHtml(ctx *socreq.GinContext, results []reflect.Value, err errors.Ap
 		respObj = &resp.HttpHtmlRespResult{
 			HttpStatus: 500,
 		}
-		controller.HtmlHttpRespResult(ctx, respObj)
+		controller.HtmlHttpRespResult(ctx.Ctx, respObj)
 		return
 	}
 	if len(results) > 0 {
 		respObj = (results)[0].Interface().(*resp.HttpHtmlRespResult)
 	}
 
-	controller.HtmlHttpRespResult(ctx, respObj)
+	controller.HtmlHttpRespResult(ctx.Ctx, respObj)
 }
 
 // responseText
@@ -245,14 +245,14 @@ func responseText(ctx *socreq.GinContext, results []reflect.Value, err errors.Ap
 		respObj = &resp.HttpTextRespResult{
 			HttpStatus: 500,
 		}
-		controller.TextHttpRespResult(ctx, respObj)
+		controller.TextHttpRespResult(ctx.Ctx, respObj)
 		return
 	}
 	if len(results) > 0 {
 		respObj = (results)[0].Interface().(*resp.HttpTextRespResult)
 	}
 
-	controller.TextHttpRespResult(ctx, respObj)
+	controller.TextHttpRespResult(ctx.Ctx, respObj)
 }
 
 // responseXml
@@ -264,14 +264,14 @@ func responseXml(ctx *socreq.GinContext, results []reflect.Value, err errors.App
 		respObj = &resp.HttpXmlRespResult{
 			HttpStatus: 500,
 		}
-		controller.XmlHttpRespResult(ctx, respObj)
+		controller.XmlHttpRespResult(ctx.Ctx, respObj)
 		return
 	}
 	if len(results) > 0 {
 		respObj = (results)[0].Interface().(*resp.HttpXmlRespResult)
 	}
 
-	controller.XmlHttpRespResult(ctx, respObj)
+	controller.XmlHttpRespResult(ctx.Ctx, respObj)
 }
 
 // responseHtml
@@ -283,14 +283,14 @@ func responseProtoBuf(ctx *socreq.GinContext, results []reflect.Value, err error
 		respObj = &resp.HttpProtoBufRespResult{
 			HttpStatus: 500,
 		}
-		controller.ProtoBufHttpRespResult(ctx, respObj)
+		controller.ProtoBufHttpRespResult(ctx.Ctx, respObj)
 		return
 	}
 	if len(results) > 0 {
 		respObj = (results)[0].Interface().(*resp.HttpProtoBufRespResult)
 	}
 
-	controller.ProtoBufHttpRespResult(ctx, respObj)
+	controller.ProtoBufHttpRespResult(ctx.Ctx, respObj)
 }
 
 // responseHtml
@@ -302,14 +302,14 @@ func responseRedirect(ctx *socreq.GinContext, results []reflect.Value, err error
 		respObj = &resp.HttpRedirectRespResult{
 			HttpStatus: 500,
 		}
-		controller.RedirectHttpRespResult(ctx, respObj)
+		controller.RedirectHttpRespResult(ctx.Ctx, respObj)
 		return
 	}
 	if len(results) > 0 {
 		respObj = (results)[0].Interface().(*resp.HttpRedirectRespResult)
 	}
 
-	controller.RedirectHttpRespResult(ctx, respObj)
+	controller.RedirectHttpRespResult(ctx.Ctx, respObj)
 }
 
 // responseFile
@@ -321,12 +321,12 @@ func responseFile(ctx *socreq.GinContext, results []reflect.Value, err errors.Ap
 		respObj = &resp.HttpFileRespResult{
 			HttpStatus: 500,
 		}
-		controller.FileHttpRespResult(ctx, respObj)
+		controller.FileHttpRespResult(ctx.Ctx, respObj)
 		return
 	}
 	if len(results) > 0 {
 		respObj = (results)[0].Interface().(*resp.HttpFileRespResult)
 	}
 
-	controller.FileHttpRespResult(ctx, respObj)
+	controller.FileHttpRespResult(ctx.Ctx, respObj)
 }

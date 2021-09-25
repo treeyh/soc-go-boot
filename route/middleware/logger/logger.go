@@ -80,7 +80,9 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 
 		traceId, spanId := getTraceIdSpanId(c)
 
-		app := c.Request.Header.Get(boot_consts.HeaderApp)
+		app := c.Request.Header.Get(boot_consts.HeaderAppCodeKey)
+		partnerCode := c.Request.Header.Get(boot_consts.HeaderPartnerCodeKey)
+		channelCode := c.Request.Header.Get(boot_consts.HeaderChannel)
 		authToken := c.Request.Header.Get(boot_consts.HeaderAuthTokenKey)
 		platform := c.Request.Header.Get(boot_consts.HeaderPlatform)
 		clientVersion := c.Request.Header.Get(boot_consts.HeaderClientVersion)
@@ -100,6 +102,8 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 			AuthToken:     authToken,
 			Platform:      platform,
 			ClientVersion: clientVersion,
+			PartnerCode:   partnerCode,
+			Channel:       channelCode,
 		}
 
 		if isNeedBody(contentType) {
@@ -154,6 +158,8 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 				zap.String("duration", runtimes),
 				zap.String("app", app),
 				zap.String("platform", platform),
+				zap.String("channel", channelCode),
+				zap.String("partner", partnerCode),
 				zap.String("requestBody", strings.ReplaceAll(body, "\n", "\\n")),
 				zap.String("start", times.GetDateTimeMillisecondStrByMillisecond(httpContext.StartTime)),
 				zap.String("end", times.GetDateTimeMillisecondStrByMillisecond(httpContext.EndTime)),

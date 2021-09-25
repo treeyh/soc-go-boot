@@ -13,11 +13,20 @@ const (
 	HeaderAuthTokenKey = "soc-auth-token"
 	// HeaderPlatform 平台
 	HeaderPlatform = "soc-platform"
-	// HeaderApp 应用
-	HeaderApp = "soc-app"
+
+	// HeaderAppCodeKey 用于http header
+	HeaderAppCodeKey = "soc-app"
+
+	// HeaderPartnerCodeKey 合作方id的http header
+	HeaderPartnerCodeKey = "soc-partner-code"
+
 	// HeaderChannel 渠道
-	HeaderChannel       = "soc-channel"
+	HeaderChannel = "soc-channel"
+
 	HeaderClientVersion = "soc-client-version"
+
+	// HeaderTraceIdKey 用于http header
+	HeaderTraceIdKey = "soc-trace-id"
 
 	// HeaderSignKey 请求签名 http header
 	HeaderSignKey = "soc-sign"
