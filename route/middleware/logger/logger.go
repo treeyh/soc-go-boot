@@ -63,7 +63,7 @@ func getTraceIdSpanId(c *gin.Context) (string, string) {
 	spanId := go2sky.SpanID(c.Request.Context())
 	// 判断是否已有skywalking traceId
 	if "" == traceId || go2sky.EmptyTraceID == traceId {
-		traceId = c.Request.Header.Get(consts.HeaderTraceIdKey)
+		traceId = c.Request.Header.Get(boot_consts.HeaderTraceIdKey)
 		// 判断是否已有请求 traceId
 		if "" == traceId || go2sky.EmptyTraceID == traceId {
 			traceId = newTraceId()
@@ -121,11 +121,11 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 			}
 		}
 
-		ctx := context.WithValue(c.Request.Context(), consts.HeaderTraceIdKey, traceId)
+		ctx := context.WithValue(c.Request.Context(), consts.ContextTracerKey, traceId)
 		ctx = context.WithValue(ctx, boot_consts.ContextHttpContextKey, httpContext)
 		c.Request = c.Request.WithContext(ctx)
 
-		c.Header(consts.HeaderTraceIdKey, traceId)
+		c.Header(boot_consts.HeaderTraceIdKey, traceId)
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 		c.Writer = blw
 
