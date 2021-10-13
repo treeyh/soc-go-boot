@@ -18,7 +18,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.7.1
-	github.com/treeyh/soc-go-common v0.0.0-20210925010650-40e59deb1014
+	github.com/treeyh/soc-go-common v0.0.0-20210928013351-ad986cd3855f
 	go.uber.org/zap v1.16.0
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
 	gopkg.in/ini.v1 v1.62.0 // indirect

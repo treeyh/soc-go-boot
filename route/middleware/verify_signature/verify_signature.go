@@ -14,6 +14,7 @@ import (
 	"github.com/treeyh/soc-go-common/core/utils/slice"
 	"github.com/treeyh/soc-go-common/core/utils/times"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -91,12 +92,12 @@ func StartVerifySignature(getVerifyConfig func(*gin.Context) *boot_config.Verify
 
 // checkTimestampOverLimit 校验时间戳是否在阈值范围内
 func checkTimestampOverLimit(c *gin.Context) bool {
-	timestampStr := c.Request.Header.Get(consts.HeaderTimestampKey)
+	timestampStr := c.Request.Header.Get(boot_consts.HeaderTimestampKey)
 	timestamp, err := times.ParseByFormat(consts.AppSystemTimeFormat8, timestampStr)
 	if err != nil {
 		log.ErrorCtx2(c.Request.Context(), err, "header timestamp param error. timestamp:"+timestampStr)
 
-		controller.FailJson(c, errors.NewAppError(errors.ParamError, consts.HeaderTimestampKey))
+		controller.FailJson(c, errors.NewAppError(errors.ParamError, boot_consts.HeaderTimestampKey))
 		c.Abort()
 		return false
 	}
@@ -104,6 +105,7 @@ func checkTimestampOverLimit(c *gin.Context) bool {
 	now := time.Now().UTC()
 	if (now.Unix()+boot_config.GetSocConfig().Signature.TimeRange) < timestamp.UTC().Unix() ||
 		(now.Unix()-boot_config.GetSocConfig().Signature.TimeRange) > timestamp.UTC().Unix() {
+
 		controller.FailJson(c, errors.NewAppError(boot_error_consts.RequestTimestampOverLimit))
 		c.Abort()
 		return false
@@ -122,20 +124,21 @@ func buildSignSourceStr(c *gin.Context) string {
 		keys = append(keys, k)
 	}
 	for k, _ := range c.Request.Header {
-		if !slice.ContainString(k, boot_config.GetSocConfig().Signature.Headers) {
+		lowerKey := strings.ToLower(k)
+		if !slice.ContainString(lowerKey, boot_config.GetSocConfig().Signature.Headers) {
 			continue
 		}
-		params[k] = c.Request.Header.Get(k)
+		params[lowerKey] = c.Request.Header.Get(k)
 		keys = append(keys, k)
 	}
 	// 排序
 	sort.Strings(keys)
 
 	// 签名源字符串 格式为：{timestampStr}&{排序后的keys对(除了时间戳和签名kv) key1=value1&key2=value2&key3=value3}[&{body}]&{签名key}
-	sourceStr := c.Request.Header.Get(consts.HeaderTimestampKey)
+	sourceStr := c.Request.Header.Get(boot_consts.HeaderTimestampKey)
 
 	for _, v := range keys {
-		if v == consts.HeaderSignKey || v == consts.HeaderTimestampKey {
+		if v == boot_consts.HeaderSignKey || v == boot_consts.HeaderTimestampKey {
 			continue
 		}
 		sourceStr += "&" + v + "=" + params[v]
