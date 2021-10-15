@@ -129,7 +129,7 @@ func buildSignSourceStr(c *gin.Context) string {
 			continue
 		}
 		params[lowerKey] = c.Request.Header.Get(k)
-		keys = append(keys, k)
+		keys = append(keys, lowerKey)
 	}
 	// 排序
 	sort.Strings(keys)
