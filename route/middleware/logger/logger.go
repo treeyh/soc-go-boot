@@ -117,6 +117,7 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 				body = string(data)
 				// 重新写入body
 				c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+				httpContext.Body = body
 			}
 		}
 
