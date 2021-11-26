@@ -53,7 +53,7 @@ type InParamsType struct {
 	ParamsType
 }
 
-// OutParamsType 输出参数类型定义
+// ParamsType 输出参数类型定义
 type ParamsType struct {
 	IsPointer  bool         `json:"isPointer"`
 	DefaultVal string       `json:"defaultVal"`
