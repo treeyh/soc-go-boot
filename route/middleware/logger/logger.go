@@ -7,6 +7,7 @@ import (
 	"github.com/SkyAPM/go2sky"
 	"github.com/treeyh/soc-go-boot/common/boot_consts"
 	"github.com/treeyh/soc-go-boot/model"
+	"github.com/treeyh/soc-go-common/core/consts"
 	"github.com/treeyh/soc-go-common/core/logger"
 	"github.com/treeyh/soc-go-common/core/utils/network"
 	"github.com/treeyh/soc-go-common/core/utils/slice"
@@ -121,7 +122,7 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 			}
 		}
 
-		ctx := context.WithValue(c.Request.Context(), boot_consts.HeaderTraceIdKey, traceId)
+		ctx := context.WithValue(c.Request.Context(), consts.ContextTracerKey, traceId)
 		ctx = context.WithValue(ctx, boot_consts.ContextHttpContextKey, httpContext)
 		c.Request = c.Request.WithContext(ctx)
 
