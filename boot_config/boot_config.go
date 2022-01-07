@@ -17,14 +17,15 @@ type SocBootConfig struct {
 
 type SocConfig struct {
 	App        *AppConfig
-	DataSource *map[string]config.DBConfig    //数据库配置
-	Redis      *map[string]config.RedisConfig //redis配置
-	Logger     *map[string]config.LogConfig
+	DataSource map[string]config.DBConfig    //数据库配置
+	Redis      map[string]config.RedisConfig //redis配置
+	Logger     map[string]config.LogConfig
 	Trace      *config.TraceConfig
 	Signature  *SignatureConfig
-	WeChat     *map[string]config.WeChatConfig
-	ALiYun     *map[string]config.ALiYunConfig
-	Params     *map[string]string
+	I18n       *config.I18nConfig
+	WeChat     map[string]config.WeChatConfig
+	ALiYun     map[string]config.ALiYunConfig
+	Params     map[string]string
 }
 
 // AppConfig 应用配置
