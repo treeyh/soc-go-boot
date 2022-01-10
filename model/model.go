@@ -124,6 +124,7 @@ type HttpContext struct {
 	ClientVersion string
 	Platform      string
 	Channel       string
+	Lang          string
 }
 
 // GetNewContext 获取一个新的ctx

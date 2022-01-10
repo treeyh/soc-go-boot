@@ -1,10 +1,14 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/treeyh/soc-go-boot/boot_config"
+	"github.com/treeyh/soc-go-boot/model"
 	"github.com/treeyh/soc-go-boot/model/resp"
 	"github.com/treeyh/soc-go-common/core/errors"
 	"github.com/treeyh/soc-go-common/core/logger"
+	"github.com/treeyh/soc-go-common/library/i18n"
 	"path/filepath"
 	"time"
 )
@@ -109,19 +113,24 @@ func FailStatusJson(c *gin.Context, httpStatus int, err errors.AppError, data ..
 	Json(c, httpStatus, err.Code(), err.Message(), data...)
 }
 
-// RespJson 输出Json结果，仅支持0或1个data
+// Json 输出Json结果，仅支持0或1个data
 func Json(c *gin.Context, httpStatus int, code int, msg string, data ...interface{}) {
+
+	message := msg
+	if boot_config.GetSocConfig().I18n.Enable {
+		message = i18n.GetByDefault(model.GetHttpContext(c.Request.Context()).Lang, fmt.Sprintf("ErrorMsg.%d", code), msg)
+	}
 	if len(data) > 0 {
 		c.JSON(httpStatus, resp.RespResult{
 			Code:      code,
-			Message:   msg,
+			Message:   message,
 			Data:      data[0],
 			Timestamp: time.Now().Unix(),
 		})
 	} else {
 		c.JSON(httpStatus, resp.RespResult{
 			Code:      code,
-			Message:   msg,
+			Message:   message,
 			Timestamp: time.Now().Unix(),
 		})
 	}

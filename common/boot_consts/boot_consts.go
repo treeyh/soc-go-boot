@@ -45,3 +45,18 @@ const (
 	// SignPolicyMd5 签名策略 md5
 	SignPolicyMd5 = "md5"
 )
+
+const (
+	// LangZhCn LangZhChs 中文简体  中间件会统一转为 LangZhCn
+	LangZhCn  string = "zh-CN"
+	LangZhChs string = "zh-CHS"
+
+	// LangZhTw LangZhHk LangZhMo LangZhCht 中文繁体 中间件会统一转为 LangZhTw
+	LangZhTw  string = "zh-TW"
+	LangZhHk  string = "zh-HK"
+	LangZhMo  string = "zh-MO"
+	LangZhCht string = "zh-CHT"
+
+	// LangEn 英文
+	LangEn string = "en"
+)
