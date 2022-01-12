@@ -121,6 +121,9 @@ func formatRequestLang(ctx context.Context, acceptLang string) string {
 	langs := make([]langInfo, 0, len(als))
 	for _, v := range als {
 		ss := strings.Split(v, ";")
+		if ss[0] == "" || strings.Contains(ss[0], "=") {
+			continue
+		}
 		if len(ss) <= 1 {
 			langs = append(langs, langInfo{
 				LangCode: ss[0],
@@ -157,11 +160,12 @@ func formatRequestLang(ctx context.Context, acceptLang string) string {
 		return q.Weight < p.Weight // Weight 递减排序
 	}})
 
-	if strings.Contains(langs[0].LangCode, boot_consts.LangZhCn) || strings.Contains(langs[0].LangCode, boot_consts.LangZhChs) {
+	langCode := langs[0].LangCode
+	if strings.Contains(langCode, boot_consts.LangZhCn) || strings.Contains(langCode, boot_consts.LangZhChs) {
 		return boot_consts.LangZhCn
-	} else if strings.Contains(langs[0].LangCode, boot_consts.LangZhTw) || strings.Contains(langs[0].LangCode, boot_consts.LangZhHk) || strings.Contains(langs[0].LangCode, boot_consts.LangZhMo) || strings.Contains(langs[0].LangCode, boot_consts.LangZhCht) {
+	} else if strings.Contains(langCode, boot_consts.LangZhTw) || strings.Contains(langCode, boot_consts.LangZhHk) || strings.Contains(langCode, boot_consts.LangZhMo) || strings.Contains(langCode, boot_consts.LangZhCht) {
 		return boot_consts.LangZhTw
-	} else if strings.Contains(langs[0].LangCode, boot_consts.LangEn) {
+	} else if strings.Contains(langCode, boot_consts.LangEn) {
 		return boot_consts.LangEn
 	}
 	return boot_config.GetSocConfig().I18n.DefaultLang
