@@ -107,7 +107,7 @@ func getTraceIdSpanId(c *gin.Context) (string, string) {
 	return traceId, strconv.Itoa(int(spanId))
 }
 
-//  formatRequestLang 格式化请求头语言  zh-CN,zh;q=0.9,en;q=0.8
+//  formatRequestLang 格式化请求头语言  zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6
 func formatRequestLang(ctx context.Context, acceptLang string) string {
 	if !boot_config.GetSocConfig().I18n.Enable {
 		return ""
@@ -158,11 +158,11 @@ func formatRequestLang(ctx context.Context, acceptLang string) string {
 	}})
 
 	if strings.Contains(langs[0].LangCode, boot_consts.LangZhCn) || strings.Contains(langs[0].LangCode, boot_consts.LangZhChs) {
-		return boot_consts.LangEn
-	} else if strings.Contains(langs[0].LangCode, boot_consts.LangZhTw) || strings.Contains(langs[0].LangCode, boot_consts.LangZhHk) || strings.Contains(langs[0].LangCode, boot_consts.LangZhMo) || strings.Contains(langs[0].LangCode, boot_consts.LangZhCht) {
 		return boot_consts.LangZhCn
-	} else if strings.Contains(langs[0].LangCode, boot_consts.LangEn) {
+	} else if strings.Contains(langs[0].LangCode, boot_consts.LangZhTw) || strings.Contains(langs[0].LangCode, boot_consts.LangZhHk) || strings.Contains(langs[0].LangCode, boot_consts.LangZhMo) || strings.Contains(langs[0].LangCode, boot_consts.LangZhCht) {
 		return boot_consts.LangZhTw
+	} else if strings.Contains(langs[0].LangCode, boot_consts.LangEn) {
+		return boot_consts.LangEn
 	}
 	return boot_config.GetSocConfig().I18n.DefaultLang
 }

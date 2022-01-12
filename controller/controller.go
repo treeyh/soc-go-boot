@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/treeyh/soc-go-boot/boot_config"
@@ -22,8 +23,14 @@ type IController interface {
 	PreUrl() string
 }
 
-func BuildRespResult(appError errors.AppError, data ...interface{}) *resp.RespResult {
+func getCodeLangMessage(ctx context.Context, code int, msg string) string {
+	if boot_config.GetSocConfig().I18n.Enable {
+		return i18n.GetByDefault(model.GetHttpContext(ctx).Lang, fmt.Sprintf("ErrorMsg.%d", code), msg)
+	}
+	return msg
+}
 
+func BuildRespResult(appError errors.AppError, data ...interface{}) *resp.RespResult {
 	if len(data) > 0 {
 		return &resp.RespResult{
 			Code:      appError.Code(),
@@ -100,37 +107,33 @@ func HttpRespResult(respResult *resp.RespResult) *resp.HttpJsonRespResult {
 
 // OkJson 输出成功Json结果，仅支持0或1个data
 func OkJson(c *gin.Context, data ...interface{}) {
-	Json(c, 200, errors.OK.Code(), errors.OK.Message(), data...)
+	Json(c, 200, errors.OK.Code(), getCodeLangMessage(c.Request.Context(), errors.OK.Code(), errors.OK.Message()), data...)
 }
 
 // FailJson 输出失败Json结果，仅支持0或1个data
 func FailJson(c *gin.Context, err errors.AppError, data ...interface{}) {
-	Json(c, 200, err.Code(), err.Message(), data...)
+	Json(c, 200, err.Code(), getCodeLangMessage(c.Request.Context(), err.Code(), err.Message()), data...)
 }
 
 // FailStatusJson 输出失败Json结果，仅支持0或1个data
 func FailStatusJson(c *gin.Context, httpStatus int, err errors.AppError, data ...interface{}) {
-	Json(c, httpStatus, err.Code(), err.Message(), data...)
+	Json(c, httpStatus, err.Code(), getCodeLangMessage(c.Request.Context(), err.Code(), err.Message()), data...)
 }
 
 // Json 输出Json结果，仅支持0或1个data
 func Json(c *gin.Context, httpStatus int, code int, msg string, data ...interface{}) {
 
-	message := msg
-	if boot_config.GetSocConfig().I18n.Enable {
-		message = i18n.GetByDefault(model.GetHttpContext(c.Request.Context()).Lang, fmt.Sprintf("ErrorMsg.%d", code), msg)
-	}
 	if len(data) > 0 {
 		c.JSON(httpStatus, resp.RespResult{
 			Code:      code,
-			Message:   message,
+			Message:   getCodeLangMessage(c.Request.Context(), code, msg),
 			Data:      data[0],
 			Timestamp: time.Now().Unix(),
 		})
 	} else {
 		c.JSON(httpStatus, resp.RespResult{
 			Code:      code,
-			Message:   message,
+			Message:   getCodeLangMessage(c.Request.Context(), code, msg),
 			Timestamp: time.Now().Unix(),
 		})
 	}
