@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	log = logger.Logger()
+	log   = logger.Logger()
+	okErr = errors.NewAppError(errors.OK)
 )
 
 type IController interface {
@@ -23,11 +24,15 @@ type IController interface {
 	PreUrl() string
 }
 
-func getCodeLangMessage(ctx context.Context, code int, msg string) string {
+func getCodeLangMessage(ctx context.Context, err errors.AppError) string {
 	if boot_config.GetSocConfig().I18n.Enable {
-		return i18n.GetByDefault(model.GetHttpContext(ctx).Lang, fmt.Sprintf("ErrorMsg.%d", code), msg)
+		args := err.Args()
+		if len(args) > 0 {
+			return i18n.GetByDefault(model.GetHttpContext(ctx).Lang, fmt.Sprintf(fmt.Sprintf("ErrorMsg.%d", err.Code()), args), err.Message())
+		}
+		return i18n.GetByDefault(model.GetHttpContext(ctx).Lang, fmt.Sprintf("ErrorMsg.%d", err.Code()), err.Message())
 	}
-	return msg
+	return err.Message()
 }
 
 func BuildRespResult(appError errors.AppError, data ...interface{}) *resp.RespResult {
@@ -107,33 +112,38 @@ func HttpRespResult(respResult *resp.RespResult) *resp.HttpJsonRespResult {
 
 // OkJson 输出成功Json结果，仅支持0或1个data
 func OkJson(c *gin.Context, data ...interface{}) {
-	Json(c, 200, errors.OK.Code(), getCodeLangMessage(c.Request.Context(), errors.OK.Code(), errors.OK.Message()), data...)
+	json(c, 200, errors.OK.Code(), getCodeLangMessage(c.Request.Context(), okErr), data...)
 }
 
 // FailJson 输出失败Json结果，仅支持0或1个data
 func FailJson(c *gin.Context, err errors.AppError, data ...interface{}) {
-	Json(c, 200, err.Code(), getCodeLangMessage(c.Request.Context(), err.Code(), err.Message()), data...)
+	json(c, 200, err.Code(), getCodeLangMessage(c.Request.Context(), err), data...)
 }
 
 // FailStatusJson 输出失败Json结果，仅支持0或1个data
 func FailStatusJson(c *gin.Context, httpStatus int, err errors.AppError, data ...interface{}) {
-	Json(c, httpStatus, err.Code(), getCodeLangMessage(c.Request.Context(), err.Code(), err.Message()), data...)
+	json(c, httpStatus, err.Code(), getCodeLangMessage(c.Request.Context(), err), data...)
 }
 
 // Json 输出Json结果，仅支持0或1个data
 func Json(c *gin.Context, httpStatus int, code int, msg string, data ...interface{}) {
+	json(c, httpStatus, code, msg, data...)
+}
+
+// json 输出Json结果，仅支持0或1个data
+func json(c *gin.Context, httpStatus int, code int, msg string, data ...interface{}) {
 
 	if len(data) > 0 {
 		c.JSON(httpStatus, resp.RespResult{
 			Code:      code,
-			Message:   getCodeLangMessage(c.Request.Context(), code, msg),
+			Message:   msg,
 			Data:      data[0],
 			Timestamp: time.Now().Unix(),
 		})
 	} else {
 		c.JSON(httpStatus, resp.RespResult{
 			Code:      code,
-			Message:   getCodeLangMessage(c.Request.Context(), code, msg),
+			Message:   msg,
 			Timestamp: time.Now().Unix(),
 		})
 	}
