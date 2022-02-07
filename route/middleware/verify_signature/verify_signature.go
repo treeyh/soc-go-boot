@@ -141,6 +141,7 @@ func buildSignSourceStr(c *gin.Context) (string, string) {
 	for k, _ := range querys {
 		params[k] = querys[k][0]
 		keys = append(keys, k)
+		params2[k] = querys[k][0]
 		keys2 = append(keys2, k)
 	}
 	for k, _ := range c.Request.Header {
