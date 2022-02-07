@@ -59,25 +59,42 @@ func StartVerifySignature(getVerifyConfig func(*gin.Context) *boot_config.Verify
 		}
 
 		// 签名源字符串 格式为：{timestampStr}&{排序后的keys对(除了时间戳和签名kv) key1=value1&key2=value2&key3=value3}[&{body}]&{签名key}
-		sourceStr := buildSignSourceStr(c)
+		sourceStr, sourceStr2 := buildSignSourceStr(c)
 
 		reqSignStr := c.Request.Header.Get(boot_consts.HeaderSignKey)
 		signPolicy := c.Request.Header.Get(boot_consts.HeaderSignPolicyKey)
 
 		checkFlag := false
 		for _, sk := range verifyConfig.SecretKeys {
-			sourceStr2 := sourceStr + "&" + sk
+			sourceStrTemp := sourceStr + "&" + sk
 			sign := ""
 			if v, ok := encryptMap[signPolicy]; ok {
-				sign = v(sourceStr2)
+				sign = v(sourceStrTemp)
 			} else {
-				sign = encryptMap[boot_consts.SignPolicySha256](sourceStr2)
+				sign = encryptMap[boot_consts.SignPolicySha256](sourceStrTemp)
 			}
 			if sign == reqSignStr {
 				checkFlag = true
 				break
 			}
-			log.InfoCtx(c.Request.Context(), "sign policy: "+signPolicy+"; sign:"+sign+"; reqSign:"+reqSignStr+"; source:"+sourceStr2)
+			log.InfoCtx(c.Request.Context(), "sign policy: "+signPolicy+"; sign:"+sign+"; reqSign:"+reqSignStr+"; source:"+sourceStrTemp)
+
+			// TODO 适配没有情况
+			if sourceStr2 == "" {
+				continue
+			}
+			sourceStrTemp2 := sourceStr2 + "&" + sk
+			sign2 := ""
+			if v, ok := encryptMap[signPolicy]; ok {
+				sign2 = v(sourceStrTemp)
+			} else {
+				sign2 = encryptMap[boot_consts.SignPolicySha256](sourceStrTemp2)
+			}
+			if sign2 == reqSignStr {
+				checkFlag = true
+				break
+			}
+			log.InfoCtx(c.Request.Context(), "sign policy: "+signPolicy+"; sign2:"+sign2+"; reqSign:"+reqSignStr+"; source2:"+sourceStrTemp2)
 		}
 
 		if !checkFlag {
@@ -113,23 +130,32 @@ func checkTimestampOverLimit(c *gin.Context) bool {
 	return true
 }
 
-// buildSignSourceStr 构造签名源字符串
-func buildSignSourceStr(c *gin.Context) string {
+// buildSignSourceStr 构造签名源字符串, 返回值适配content-type没有的情况, 为第一版兜底, TODO 后续可去除该逻辑
+func buildSignSourceStr(c *gin.Context) (string, string) {
 	// 收集 query和header参数
 	params := make(map[string]string)
 	keys := make([]string, 0)
+	params2 := make(map[string]string)
+	keys2 := make([]string, 0)
 	querys := c.Request.URL.Query()
 	for k, _ := range querys {
 		params[k] = querys[k][0]
 		keys = append(keys, k)
+		keys2 = append(keys2, k)
 	}
 	for k, _ := range c.Request.Header {
 		lowerKey := strings.ToLower(k)
 		if !slice.ContainString(lowerKey, boot_config.GetSocConfig().Signature.Headers) {
+			if "content-type" == lowerKey {
+				params2[lowerKey] = c.Request.Header.Get(k)
+				keys2 = append(keys2, lowerKey)
+			}
 			continue
 		}
 		params[lowerKey] = c.Request.Header.Get(k)
 		keys = append(keys, lowerKey)
+		params2[lowerKey] = c.Request.Header.Get(k)
+		keys2 = append(keys2, lowerKey)
 	}
 	// 排序
 	sort.Strings(keys)
@@ -147,5 +173,27 @@ func buildSignSourceStr(c *gin.Context) string {
 	if body != "" {
 		sourceStr += "&" + body
 	}
-	return sourceStr
+
+	if len(keys) == len(keys2) {
+		return sourceStr, ""
+	}
+
+	// 排序
+	sort.Strings(keys2)
+
+	// 签名源字符串 格式为：{timestampStr}&{排序后的keys对(除了时间戳和签名kv) key1=value1&key2=value2&key3=value3}[&{body}]&{签名key}
+	sourceStr2 := c.Request.Header.Get(boot_consts.HeaderTimestampKey)
+
+	for _, v := range keys2 {
+		if v == boot_consts.HeaderSignKey || v == boot_consts.HeaderTimestampKey {
+			continue
+		}
+		sourceStr2 += "&" + v + "=" + params2[v]
+	}
+	if body != "" {
+		sourceStr2 += "&" + body
+	}
+
+	return sourceStr, sourceStr2
+
 }
