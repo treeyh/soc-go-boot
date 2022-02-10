@@ -59,7 +59,16 @@ func StartVerifySignature(getVerifyConfig func(*gin.Context) *boot_config.Verify
 		}
 
 		// 签名源字符串 格式为：{timestampStr}&{排序后的keys对(除了时间戳和签名kv) key1=value1&key2=value2&key3=value3}[&{body}]&{签名key}
-		sourceStr, sourceStr2 := buildSignSourceStr(c)
+		sourceStr := ""
+		clientVersion := c.Request.Header.Get(boot_consts.HeaderClientVersion)
+
+		if clientVersion == "0.9.0" {
+			sourceStr = buildSignSourceStr090(c)
+		} else if clientVersion == "1.0.0" {
+			sourceStr = buildSignSourceStr100(c)
+		} else {
+			sourceStr = buildSignSourceStr(c)
+		}
 
 		reqSignStr := c.Request.Header.Get(boot_consts.HeaderSignKey)
 		signPolicy := c.Request.Header.Get(boot_consts.HeaderSignPolicyKey)
@@ -78,23 +87,6 @@ func StartVerifySignature(getVerifyConfig func(*gin.Context) *boot_config.Verify
 				break
 			}
 			log.InfoCtx(c.Request.Context(), "sign policy: "+signPolicy+"; sign:"+sign+"; reqSign:"+reqSignStr+"; source:"+sourceStrTemp)
-
-			// TODO 适配没有情况
-			if sourceStr2 == "" {
-				continue
-			}
-			sourceStrTemp2 := sourceStr2 + "&" + sk
-			sign2 := ""
-			if v, ok := encryptMap[signPolicy]; ok {
-				sign2 = v(sourceStrTemp)
-			} else {
-				sign2 = encryptMap[boot_consts.SignPolicySha256](sourceStrTemp2)
-			}
-			if sign2 == reqSignStr {
-				checkFlag = true
-				break
-			}
-			log.InfoCtx(c.Request.Context(), "sign policy: "+signPolicy+"; sign2:"+sign2+"; reqSign:"+reqSignStr+"; source2:"+sourceStrTemp2)
 		}
 
 		if !checkFlag {
@@ -130,33 +122,23 @@ func checkTimestampOverLimit(c *gin.Context) bool {
 	return true
 }
 
-// buildSignSourceStr 构造签名源字符串, 返回值适配content-type没有的情况, 为第一版兜底, TODO 后续可去除该逻辑
-func buildSignSourceStr(c *gin.Context) (string, string) {
+// buildSignSourceStr 构造签名源字符串
+func buildSignSourceStr(c *gin.Context) string {
 	// 收集 query和header参数
 	params := make(map[string]string)
 	keys := make([]string, 0)
-	params2 := make(map[string]string)
-	keys2 := make([]string, 0)
 	querys := c.Request.URL.Query()
 	for k, _ := range querys {
 		params[k] = querys[k][0]
 		keys = append(keys, k)
-		params2[k] = querys[k][0]
-		keys2 = append(keys2, k)
 	}
 	for k, _ := range c.Request.Header {
 		lowerKey := strings.ToLower(k)
 		if !slice.ContainString(lowerKey, boot_config.GetSocConfig().Signature.Headers) {
-			if "content-type" == lowerKey {
-				params2[lowerKey] = c.Request.Header.Get(k)
-				keys2 = append(keys2, lowerKey)
-			}
 			continue
 		}
 		params[lowerKey] = c.Request.Header.Get(k)
 		keys = append(keys, lowerKey)
-		params2[lowerKey] = c.Request.Header.Get(k)
-		keys2 = append(keys2, lowerKey)
 	}
 	// 排序
 	sort.Strings(keys)
@@ -174,27 +156,88 @@ func buildSignSourceStr(c *gin.Context) (string, string) {
 	if body != "" {
 		sourceStr += "&" + body
 	}
+	return sourceStr
 
-	if len(keys) == len(keys2) {
-		return sourceStr, ""
+}
+
+// buildSignSourceStr100 构造签名源字符串 1.0.0版本, 返回值适配content-type没有的情况, 为第一版兜底, TODO 后续可去除该逻辑
+func buildSignSourceStr100(c *gin.Context) string {
+	// 收集 query和header参数
+	params := make(map[string]string)
+	keys := make([]string, 0)
+	querys := c.Request.URL.Query()
+	for k, _ := range querys {
+		params[k] = querys[k][0]
+		keys = append(keys, k)
 	}
-
+	for k, _ := range c.Request.Header {
+		lowerKey := strings.ToLower(k)
+		if !slice.ContainString(lowerKey, boot_config.GetSocConfig().Signature.Headers) {
+			if "accept-language" == lowerKey {
+				params[lowerKey] = c.Request.Header.Get(k)
+				keys = append(keys, lowerKey)
+			}
+			continue
+		}
+		params[lowerKey] = c.Request.Header.Get(k)
+		keys = append(keys, lowerKey)
+	}
 	// 排序
-	sort.Strings(keys2)
+	sort.Strings(keys)
 
 	// 签名源字符串 格式为：{timestampStr}&{排序后的keys对(除了时间戳和签名kv) key1=value1&key2=value2&key3=value3}[&{body}]&{签名key}
-	sourceStr2 := c.Request.Header.Get(boot_consts.HeaderTimestampKey)
+	sourceStr := c.Request.Header.Get(boot_consts.HeaderTimestampKey)
 
-	for _, v := range keys2 {
+	for _, v := range keys {
 		if v == boot_consts.HeaderSignKey || v == boot_consts.HeaderTimestampKey {
 			continue
 		}
-		sourceStr2 += "&" + v + "=" + params2[v]
+		sourceStr += "&" + v + "=" + params[v]
 	}
+	body := model.GetHttpContext(c.Request.Context()).Body
 	if body != "" {
-		sourceStr2 += "&" + body
+		sourceStr += "&" + body
 	}
+	return sourceStr
+}
 
-	return sourceStr, sourceStr2
+// buildSignSourceStr090 构造签名源字符串 0.9.0版本, 返回值适配content-type没有的情况, 为第一版兜底, TODO 后续可去除该逻辑
+func buildSignSourceStr090(c *gin.Context) string {
+	// 收集 query和header参数
+	params := make(map[string]string)
+	keys := make([]string, 0)
+	querys := c.Request.URL.Query()
+	for k, _ := range querys {
+		params[k] = querys[k][0]
+		keys = append(keys, k)
+	}
+	for k, _ := range c.Request.Header {
+		lowerKey := strings.ToLower(k)
+		if !slice.ContainString(lowerKey, boot_config.GetSocConfig().Signature.Headers) {
+			if "content-type" == lowerKey || "accept-language" == lowerKey {
+				params[lowerKey] = c.Request.Header.Get(k)
+				keys = append(keys, lowerKey)
+			}
+			continue
+		}
+		params[lowerKey] = c.Request.Header.Get(k)
+		keys = append(keys, lowerKey)
+	}
+	// 排序
+	sort.Strings(keys)
 
+	// 签名源字符串 格式为：{timestampStr}&{排序后的keys对(除了时间戳和签名kv) key1=value1&key2=value2&key3=value3}[&{body}]&{签名key}
+	sourceStr := c.Request.Header.Get(boot_consts.HeaderTimestampKey)
+
+	for _, v := range keys {
+		if v == boot_consts.HeaderSignKey || v == boot_consts.HeaderTimestampKey {
+			continue
+		}
+		sourceStr += "&" + v + "=" + params[v]
+	}
+	body := model.GetHttpContext(c.Request.Context()).Body
+	if body != "" {
+		sourceStr += "&" + body
+	}
+	return sourceStr
 }
