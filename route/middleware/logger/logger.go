@@ -76,9 +76,12 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 		authToken := c.Request.Header.Get(boot_consts.HeaderAuthTokenKey)
 		platform := c.Request.Header.Get(boot_consts.HeaderPlatform)
 		clientVersion := c.Request.Header.Get(boot_consts.HeaderClientVersion)
-
-		acceptLang := c.Request.Header.Get("Accept-Language")
-		lang := formatRequestLang(c.Request.Context(), acceptLang)
+		deviceId := c.Request.Header.Get(boot_consts.HeaderDeviceIdKey)
+		lang := c.Request.Header.Get(boot_consts.HeaderLangKey)
+		if lang == "" {
+			acceptLang := c.Request.Header.Get("Accept-Language")
+			lang = formatRequestLang(c.Request.Context(), acceptLang)
+		}
 
 		contentType := c.ContentType()
 		body := ""
@@ -98,6 +101,7 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 			PartnerCode:   partnerCode,
 			Channel:       channelCode,
 			Lang:          lang,
+			DeviceId:      deviceId,
 		}
 
 		if isNeedBody(contentType) {
@@ -165,6 +169,7 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 				zap.String("url", httpContext.Url),
 				zap.String("lang", httpContext.Lang),
 				zap.String("httpStatus", httpStatus),
+				zap.String("deviceId", httpContext.DeviceId),
 				zap.String("socLog", "rr"))
 
 		}

@@ -36,6 +36,12 @@ const (
 
 	// HeaderSignPolicyKey 请求签名策略 http header
 	HeaderSignPolicyKey = "soc-sign-policy"
+
+	// HeaderDeviceIdKey 请求设备id http header
+	HeaderDeviceIdKey = "soc-device-id"
+
+	// HeaderLangKey 请求语言 http header
+	HeaderLangKey = "soc-lang"
 )
 
 const (

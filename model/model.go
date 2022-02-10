@@ -125,6 +125,7 @@ type HttpContext struct {
 	Platform      string
 	Channel       string
 	Lang          string
+	DeviceId      string
 }
 
 // GetNewContext 获取一个新的ctx
