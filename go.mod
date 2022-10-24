@@ -1,6 +1,6 @@
 module github.com/treeyh/soc-go-boot
 
-go 1.17
+go 1.19
 
 require (
 	github.com/SkyAPM/go2sky v1.2.0
@@ -18,7 +18,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.10.1
-	github.com/treeyh/soc-go-common v0.0.0-20220127030722-227282005ef9
+	github.com/treeyh/soc-go-common v0.0.0-20221024094017-a9cf3b340983
 	go.uber.org/zap v1.17.0
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
 	gopkg.in/ini.v1 v1.66.2 // indirect
