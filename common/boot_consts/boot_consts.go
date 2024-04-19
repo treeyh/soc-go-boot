@@ -65,4 +65,8 @@ const (
 
 	// LangEn 英文
 	LangEn string = "en"
+	// LangEnUs 英文美国
+	LangEnUs string = "en-US"
+	// LangEnGb 英文英国
+	LangEnGb string = "en-GB"
 )
