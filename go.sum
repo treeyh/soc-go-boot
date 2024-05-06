@@ -212,6 +212,8 @@ github.com/treeyh/soc-go-common v0.0.0-20240506074330-74b2f36c9539 h1:l1E1acwMa5
 github.com/treeyh/soc-go-common v0.0.0-20240506074330-74b2f36c9539/go.mod h1:0Mqh8be0FqrfWrbL4YpTvd2V3wdQYxR1w+L7wL7MFRk=
 github.com/treeyh/soc-go-common v0.0.0-20240506083309-3c47c76b17ab h1:WwB/yu8wpQ5ne6lZNHxspjGhstJy7JCr/rnU0b9mmzI=
 github.com/treeyh/soc-go-common v0.0.0-20240506083309-3c47c76b17ab/go.mod h1:0Mqh8be0FqrfWrbL4YpTvd2V3wdQYxR1w+L7wL7MFRk=
+github.com/treeyh/soc-go-common v0.0.0-20240506100632-ae41b3c2390e h1:2+bq9XI/b+IZlbN9s2DtWL4qbw+k9KN3tLAGStH8ed8=
+github.com/treeyh/soc-go-common v0.0.0-20240506100632-ae41b3c2390e/go.mod h1:0Mqh8be0FqrfWrbL4YpTvd2V3wdQYxR1w+L7wL7MFRk=
 github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS4MhqMhdFk5YI=
 github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
 github.com/uber/jaeger-client-go v2.30.0+incompatible h1:D6wyKGCecFaSRUpo8lCVbaOOb6ThwMmTEbhRwtKR97o=
