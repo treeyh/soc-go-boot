@@ -3,16 +3,10 @@ package route
 import (
 	"bufio"
 	"fmt"
-	"github.com/treeyh/soc-go-boot/controller"
-	"github.com/treeyh/soc-go-boot/model"
-	"github.com/treeyh/soc-go-common/core/logger"
-	"github.com/treeyh/soc-go-common/core/utils/file"
-	"github.com/treeyh/soc-go-common/core/utils/json"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -20,6 +14,12 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/treeyh/soc-go-boot/controller"
+	"github.com/treeyh/soc-go-boot/model"
+	"github.com/treeyh/soc-go-common/core/logger"
+	"github.com/treeyh/soc-go-common/core/utils/file"
+	"github.com/treeyh/soc-go-common/core/utils/json"
 )
 
 const httpMethods = ",GET,POST,DELETE,PATCH,PUT,OPTIONS,HEAD,*,"
@@ -82,9 +82,9 @@ func buildHandlerFuncMap(controllerPath string, contrs ...controller.IController
 						controllerName := fmt.Sprint(exp.X)
 
 						// 不能空默认加载所有路由，因为需要根据Controller获取PreUrl
-						//if len(contrs) > 0 {
+						// if len(contrs) > 0 {
 						//
-						//}
+						// }
 						preUrl := ""
 						if preUrl, ok = controllerNames[controllerName]; !ok {
 							// 不需要初始化
@@ -199,7 +199,7 @@ func parseHandlerFunc(controllerName, preUrl string, specDecl *ast.FuncDecl) *mo
 	}
 
 	if len(routeMethods) == 0 {
-		//无需设置路由
+		// 无需设置路由
 		return nil
 	}
 
@@ -390,7 +390,7 @@ func checkControllerStatus(controllerStatusPath, controllerPath string) bool {
 		t = true
 	}
 
-	tmpContent, err := ioutil.ReadFile(controllerStatusFilePath)
+	tmpContent, err := os.ReadFile(controllerStatusFilePath)
 	if err != nil {
 		t = true
 	}

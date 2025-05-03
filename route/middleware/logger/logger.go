@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"strconv"
+	"strings"
+
 	"github.com/SkyAPM/go2sky"
 	"github.com/treeyh/soc-go-boot/common/boot_consts"
 	"github.com/treeyh/soc-go-boot/model"
@@ -15,9 +19,6 @@ import (
 	"github.com/treeyh/soc-go-common/core/utils/times"
 	"github.com/treeyh/soc-go-common/core/utils/uuid"
 	"go.uber.org/zap"
-	"io/ioutil"
-	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -106,8 +107,8 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 
 		if isNeedBody(contentType) {
 			// 判断不是上传文件等大消息体，记录消息体日志
-			//c.Request.ParseForm()
-			//postForm = c.Request.PostForm.Encode()
+			// c.Request.ParseForm()
+			// postForm = c.Request.PostForm.Encode()
 			data, err := c.GetRawData()
 			if err != nil {
 				logger.Logger().Info(err.Error())
@@ -115,7 +116,7 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 			if data != nil {
 				body = string(data)
 				// 重新写入body
-				c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+				c.Request.Body = io.NopCloser(bytes.NewBuffer(data))
 				httpContext.Body = body
 			}
 		}
@@ -145,7 +146,7 @@ func StartTrace(ignoreLogUrls ...string) gin.HandlerFunc {
 			runtime := httpContext.EndTime - httpContext.StartTime
 			runtimes := strconv.FormatInt(runtime, 10)
 			httpStatus := strconv.Itoa(httpContext.Status)
-			//msg := fmt.Sprintf("request|traceId=%s|clientVersion=%s|authToken=%s|platform=%s|start=%s|ip=%s|contentType=%s|method=%s|url=%s|body=%s|------response|end=%s|time=%s|status=%s|body=%s|",
+			// msg := fmt.Sprintf("request|traceId=%s|clientVersion=%s|authToken=%s|platform=%s|start=%s|ip=%s|contentType=%s|method=%s|url=%s|body=%s|------response|end=%s|time=%s|status=%s|body=%s|",
 			//	httpContext.TraceId, clientVersion, authToken, platform, times.GetDateTimeStrByMillisecond(httpContext.StartTime), httpContext.Ip, contentType,
 			//	httpContext.Method, httpContext.Url, strings.ReplaceAll(body, "\n", "\\n"), times.GetDateTimeStrByMillisecond(httpContext.EndTime),
 			//	runtimes, httpStatus, blw.body.String())
