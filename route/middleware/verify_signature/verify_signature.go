@@ -1,6 +1,11 @@
 package verify_signature
 
 import (
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/treeyh/soc-go-boot/boot_config"
 	"github.com/treeyh/soc-go-boot/common/boot_consts"
@@ -13,9 +18,6 @@ import (
 	"github.com/treeyh/soc-go-common/core/utils/encrypt"
 	"github.com/treeyh/soc-go-common/core/utils/slice"
 	"github.com/treeyh/soc-go-common/core/utils/times"
-	"sort"
-	"strings"
-	"time"
 )
 
 var (
@@ -107,8 +109,12 @@ func checkTimestampOverLimit(c *gin.Context) bool {
 	now := time.Now().UTC()
 	if (now.Unix()+boot_config.GetSocConfig().Signature.TimeRange) < timestamp.UTC().Unix() ||
 		(now.Unix()-boot_config.GetSocConfig().Signature.TimeRange) > timestamp.UTC().Unix() {
+		err = errors.NewAppError(boot_error_consts.RequestTimestampOverLimit)
 
-		controller.FailJson(c, errors.NewAppError(boot_error_consts.RequestTimestampOverLimit))
+		log.ErrorCtx2(c.Request.Context(), err, "now.Unix():"+strconv.FormatInt(now.Unix(), 10)+";now:"+now.String()+
+			";now.Unix():"+strconv.FormatInt(timestamp.UTC().Unix(), 10)+";now:"+timestamp.UTC().String())
+
+		controller.FailJson(c, err)
 		c.Abort()
 		return false
 	}
