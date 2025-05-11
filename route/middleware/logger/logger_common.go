@@ -103,10 +103,10 @@ func formatRequestLang(ctx context.Context, acceptLang string) string {
 		return boot_consts.LangZhCn
 	} else if strings.Contains(langCode, boot_consts.LangZhTw) || strings.Contains(langCode, boot_consts.LangZhHk) || strings.Contains(langCode, boot_consts.LangZhMo) || strings.Contains(langCode, boot_consts.LangZhCht) {
 		return boot_consts.LangZhTw
-	} else if strings.Contains(langCode, boot_consts.LangEnUs) {
-		return boot_consts.LangEnUs
-	} else if strings.Contains(langCode, boot_consts.LangEnGb) {
-		return boot_consts.LangEnGb
+		// } else if strings.Contains(langCode, boot_consts.LangEnUs) {
+		// 	return boot_consts.LangEnUs
+		// } else if strings.Contains(langCode, boot_consts.LangEnGb) {
+		// 	return boot_consts.LangEnGb
 	} else if strings.Contains(langCode, boot_consts.LangEn) {
 		return boot_consts.LangEn
 	}
