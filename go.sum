@@ -195,6 +195,7 @@ github.com/subosito/gotenv v1.6.0/go.mod h1:Dk4QP5c2W3ibzajGcXpNraDfq2IrhjMIvMSW
 github.com/treeyh/soc-go-common v0.0.0-20250503132002-39243ead568c h1:G4jIiMrlur2Y492TqEV69YCNYvGuDtCCt/4inyTpDek=
 github.com/treeyh/soc-go-common v0.0.0-20250503132002-39243ead568c/go.mod h1:AdzEV5dnu8rfLvPoFjIS4V5qUUmflk+YPKKgBPV0Z/A=
 github.com/treeyh/soc-go-common v0.0.0-20250503135029-99ef5ae84576/go.mod h1:AdzEV5dnu8rfLvPoFjIS4V5qUUmflk+YPKKgBPV0Z/A=
+github.com/treeyh/soc-go-common v0.0.0-20250511024357-94a857590031/go.mod h1:AdzEV5dnu8rfLvPoFjIS4V5qUUmflk+YPKKgBPV0Z/A=
 github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS4MhqMhdFk5YI=
 github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
 github.com/ugorji/go v1.1.7/go.mod h1:kZn38zHttfInRq0xu/PH0az30d+z6vm202qpg1oXVMw=

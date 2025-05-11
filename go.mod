@@ -13,7 +13,7 @@ require (
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/magiconair/properties v1.8.7
 	github.com/spf13/viper v1.18.2
-	github.com/treeyh/soc-go-common v0.0.0-20250503135029-99ef5ae84576
+	github.com/treeyh/soc-go-common v0.0.0-20250511024357-94a857590031
 	go.uber.org/zap v1.27.0
 	golang.org/x/time v0.5.0
 )

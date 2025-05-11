@@ -3,12 +3,13 @@ package logger
 import (
 	"bytes"
 	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/treeyh/soc-go-boot/boot_config"
-	"github.com/treeyh/soc-go-boot/common/boot_consts"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/treeyh/soc-go-boot/boot_config"
+	"github.com/treeyh/soc-go-boot/common/boot_consts"
 )
 
 // langInfo 语言结构
@@ -44,7 +45,7 @@ func SortLangInfo(langs []langInfo, by SortBy) { // SortPerson 方法
 
 // 语言对象排序支持 end
 
-//  formatRequestLang 格式化请求头语言  zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6
+// formatRequestLang 格式化请求头语言  zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6
 func formatRequestLang(ctx context.Context, acceptLang string) string {
 	if !boot_config.GetSocConfig().I18n.Enable {
 		return ""
@@ -102,6 +103,10 @@ func formatRequestLang(ctx context.Context, acceptLang string) string {
 		return boot_consts.LangZhCn
 	} else if strings.Contains(langCode, boot_consts.LangZhTw) || strings.Contains(langCode, boot_consts.LangZhHk) || strings.Contains(langCode, boot_consts.LangZhMo) || strings.Contains(langCode, boot_consts.LangZhCht) {
 		return boot_consts.LangZhTw
+	} else if strings.Contains(langCode, boot_consts.LangEnUs) {
+		return boot_consts.LangEnUs
+	} else if strings.Contains(langCode, boot_consts.LangEnGb) {
+		return boot_consts.LangEnGb
 	} else if strings.Contains(langCode, boot_consts.LangEn) {
 		return boot_consts.LangEn
 	}
