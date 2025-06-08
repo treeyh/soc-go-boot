@@ -1,12 +1,13 @@
 package validate
 
 import (
+	"strings"
+
 	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	zh_translations "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/treeyh/soc-go-common/core/logger"
-	"strings"
 )
 
 var (
@@ -26,22 +27,25 @@ type CustomCheckInfo struct {
 }
 
 func init() {
-	//中文翻译器
+	// 中文翻译器
 	zh_ch := zh.New()
 	uni := ut.New(zh_ch)
 	trans, _ = uni.GetTranslator("zh")
-	//验证器
+	// 验证器
 	vali = validator.New()
 
-	//添加自定义参数校验
+	// 添加自定义参数校验
 	for k, v := range customValidateMap {
 		err := vali.RegisterValidation(k, v.fun)
 		if err != nil {
 			logger.Logger().Error(err)
 		}
 	}
-	//验证器注册翻译器
-	zh_translations.RegisterDefaultTranslations(vali, trans)
+	// 验证器注册翻译器
+	err := zh_translations.RegisterDefaultTranslations(vali, trans)
+	if err != nil {
+		return
+	}
 }
 
 func checkEmailHost(fl validator.FieldLevel) bool {
@@ -59,7 +63,7 @@ func ValidateObject(obj interface{}) string {
 	err := vali.Struct(obj)
 	if err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
-			//翻译错误信息
+			// 翻译错误信息
 			if v, ok := customValidateMap[err.Tag()]; ok {
 				errs = append(errs, v.message)
 			} else {
